@@ -9,6 +9,8 @@ export const ERROR_CODES = [
   'HTTP_5XX',
   'RATE_LIMIT',
   'IMAGE_TOO_LARGE',
+  'BLOCKED_SITE',
+  'BOT_PROTECTION',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 
@@ -23,6 +25,8 @@ export const ERROR_ACTIONS: Record<ErrorCode, ErrorAction[]> = {
   HTTP_5XX: ['retry'],
   RATE_LIMIT: [],
   IMAGE_TOO_LARGE: [],
+  BLOCKED_SITE: ['paste-screenshot'],
+  BOT_PROTECTION: ['retry'],
 };
 
 export function errorMessage(code: string, params: { status?: number; minutes?: number } = {}): string {
@@ -41,7 +45,12 @@ export function errorMessage(code: string, params: { status?: number; minutes?: 
     case 'RATE_LIMIT':
       return `You've made a lot of captures this hour. Try again in ${Math.max(1, params.minutes ?? 60)} min.`;
     case 'IMAGE_TOO_LARGE':
-      return "That image is over 25 MB.";
+      return 'That image is over 25 MB.';
+    // Not in product spec §6; see DECISIONS.md.
+    case 'BLOCKED_SITE':
+      return "WeShot can't open this site.";
+    case 'BOT_PROTECTION':
+      return "WeShot couldn't confirm this request came from a person. Reload the page and try again.";
     default:
       return 'Something went wrong. Try again.';
   }
