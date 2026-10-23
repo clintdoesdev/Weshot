@@ -12,3 +12,4 @@ packages/frame/test/__diff__
 apps/web/src/fonts/givonic/generated.ts
 .turbo
 .vercel
+dump.rdb
