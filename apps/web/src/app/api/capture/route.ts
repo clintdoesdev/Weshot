@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { CAPTURE_QUEUE, acquireSlot, checkRateLimit, getQueue, getRedis } from '@weshot/server';
+import { CAPTURE_QUEUE, acquireSlot, checkRateLimit, getQueue, getRedis, releaseSlot } from '@weshot/server';
 import { LIMITS, captureRequestSchema, normalizeUrl } from '@weshot/shared';
 import { NextResponse } from 'next/server';
 import { isBlockedDomain } from '@/lib/server/blocklist';
@@ -41,7 +41,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ jobId: job.id });
   } catch (err) {
     console.error('[capture] enqueue failed', err);
-    const { releaseSlot } = await import('@weshot/server');
     await releaseSlot(redis, ipHash);
     return apiError('INTERNAL', 500);
   }

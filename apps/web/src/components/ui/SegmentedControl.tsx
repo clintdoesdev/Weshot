@@ -29,6 +29,8 @@ type Props<T extends string | number> = {
   buttonClassName?: string;
   disabled?: boolean;
   wrap?: boolean;
+  /** `grid3` lays the options out in three columns (the 3×2 tab grid in UI spec §3.2). */
+  layout?: 'row' | 'grid3';
 };
 
 export function SegmentedControl<T extends string | number>({
@@ -44,6 +46,7 @@ export function SegmentedControl<T extends string | number>({
   buttonClassName,
   disabled,
   wrap,
+  layout = 'row',
 }: Props<T>) {
   const refs = useRef<Array<HTMLButtonElement | null>>([]);
   const isTabs = mode === 'tabs';
@@ -72,7 +75,7 @@ export function SegmentedControl<T extends string | number>({
       role={isTabs ? 'tablist' : 'group'}
       aria-label={label}
       className={cx(
-        'inline-flex gap-[2px] border border-white/10 bg-ws-well p-[3px]',
+        layout === 'grid3' ? 'grid grid-cols-3 gap-[2px] border border-white/10 bg-ws-well p-[3px]' : 'inline-flex gap-[2px] border border-white/10 bg-ws-well p-[3px]',
         shape === 'pill' ? 'rounded-pill' : 'rounded-[12px]',
         wrap ? 'flex-wrap' : '',
         className,

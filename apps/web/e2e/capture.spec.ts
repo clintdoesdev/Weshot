@@ -60,8 +60,14 @@ for (const [host, message, actions] of errors) {
 test('retry runs the capture again', async ({ page }) => {
   await bar(page).fill('timeout.test');
   await bar(page).press('Enter');
-  await page.locator('#ws-paste-input-help').getByRole('button', { name: 'Retry' }).click();
-  await expect(page.getByRole('status').filter({ hasText: /Loading page|Waiting for fonts|Framing/ })).toBeVisible();
+  const help = page.locator('#ws-paste-input-help');
+  await expect(help.getByRole('button', { name: 'Retry' })).toBeVisible({ timeout: 10_000 });
+  const [req] = await Promise.all([
+    page.waitForRequest((r) => r.url().endsWith('/api/capture') && r.method() === 'POST'),
+    help.getByRole('button', { name: 'Retry' }).click(),
+  ]);
+  expect(req.postDataJSON().capture.url).toBe('https://timeout.test/');
+  await expect(help.getByText('The page took longer than 30 seconds to load.')).toBeVisible({ timeout: 10_000 });
 });
 
 test('blocklisted domains are refused before capture', async ({ page }) => {

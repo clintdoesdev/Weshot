@@ -10,6 +10,7 @@ import { CaptureControls } from '../controls/CaptureControls';
 import { ExportControls } from '../controls/ExportControls';
 import { LayoutControls } from '../controls/LayoutControls';
 import { RecordControls } from '../controls/RecordControls';
+import { RecordPanel } from '../controls/RecordPanel';
 import { WindowControls } from '../controls/WindowControls';
 import { SegmentedControl } from '../ui/SegmentedControl';
 import { ControlTile } from './ControlTile';
@@ -36,11 +37,15 @@ export function Editor() {
   const activeTab = useEditor((s) => s.activeTab);
   const setActiveTab = useEditor((s) => s.setActiveTab);
   const isUrl = useEditor((s) => s.source.kind === 'url');
+  const recording = useEditor((s) => s.recording.kind === 'recording');
   const tiles = useRef<Partial<Record<EditorTab, HTMLElement | null>>>({});
 
   const focusTile = (tab: EditorTab) => {
     tiles.current[tab]?.scrollIntoView({ block: 'nearest', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
   };
+
+  // UI spec §3.2: the Record tab (and any recording in progress) uses the preview + aside layout.
+  if (activeTab === 'record' || recording) return <RecordLayout />;
 
   return (
     <div
@@ -105,6 +110,48 @@ export function Editor() {
             </ControlTile>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+/** Desktop editor while recording, UI spec §3.2: URL row, preview panel with the status pill, and the aside. */
+function RecordLayout() {
+  const activeTab = useEditor((s) => s.activeTab);
+  const setActiveTab = useEditor((s) => s.setActiveTab);
+  const isUrl = useEditor((s) => s.source.kind === 'url');
+  return (
+    <div className="glass-panel flex flex-col gap-3 rounded-shell p-3.5" onKeyDown={(e) => handleEditorKeyDown(e)}>
+      {isUrl ? <EditorUrlRow /> : null}
+      <div className="flex flex-wrap gap-3">
+        <div className="flex min-w-0 flex-[999_1_560px] flex-col gap-2.5 rounded-panel bg-ws-well p-2.5">
+          <PreviewStage variant="desktop" />
+          <div className="flex flex-wrap items-center justify-between gap-3 px-1.5 pb-1">
+            <PresetChips />
+            <ZoomControls />
+          </div>
+        </div>
+        <aside aria-label="Editor controls" className="glass-tile flex min-w-0 max-w-[420px] flex-[1_1_360px] flex-col gap-4 rounded-panel p-[18px]">
+          <SegmentedControl
+            label="Editor sections"
+            mode="tabs"
+            variant="primary"
+            layout="grid3"
+            value={activeTab}
+            onChange={setActiveTab}
+            options={EDITOR_TABS.map((t) => ({ value: t.id, label: t.label, id: `tab-${t.id}`, controls: 'aside-panel' }))}
+            className="w-full rounded-[16px]"
+            buttonClassName="!rounded-[12px]"
+          />
+          <div id="aside-panel" role="tabpanel" aria-labelledby={`tab-${activeTab}`} className="flex flex-col gap-3">
+            {activeTab === 'record' ? <RecordPanel /> : null}
+            {activeTab === 'capture' ? <CaptureControls /> : null}
+            {activeTab === 'frame' ? <WindowControls /> : null}
+            {activeTab === 'background' ? <BackgroundControls /> : null}
+            {activeTab === 'layout' ? <LayoutControls /> : null}
+            {activeTab === 'export' ? <ExportControls showDownload /> : null}
+          </div>
+        </aside>
       </div>
     </div>
   );

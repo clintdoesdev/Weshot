@@ -1,8 +1,8 @@
 'use client';
 
-import { Copy, Link2 } from 'lucide-react';
+import { Copy, Download, Link2 } from 'lucide-react';
 import type { ExportScale, ImageFormat, VideoFormat } from '@weshot/shared';
-import { copyImage } from '@/lib/actions';
+import { copyImage, downloadCurrent } from '@/lib/actions';
 import { openShare } from '@/lib/share';
 import { useEditor } from '@/lib/store';
 import { Chip } from '../ui/Chip';
@@ -20,7 +20,7 @@ export function isVideoFormat(f: string): f is VideoFormat {
   return f === 'mp4' || f === 'webm' || f === 'gif';
 }
 
-export function ExportControls() {
+export function ExportControls({ showDownload = false }: { showDownload?: boolean }) {
   const format = useEditor((s) => s.exportFormat);
   const setFormat = useEditor((s) => s.setExportFormat);
   const scale = useEditor((s) => s.exportScale);
@@ -58,6 +58,16 @@ export function ExportControls() {
           ]}
           className="w-full"
         />
+      ) : null}
+      {showDownload ? (
+        <button
+          type="button"
+          onClick={() => void downloadCurrent()}
+          className="btn-primary inline-flex h-12 items-center justify-center gap-2 rounded-[14px] text-[16px]"
+        >
+          <Download size={18} strokeWidth={1.75} aria-hidden="true" />
+          Download
+        </button>
       ) : null}
       <div className="grid grid-cols-2 gap-2">
         <button

@@ -8,7 +8,7 @@ const STEP: Partial<Record<string, CaptureStep>> = { queued: 'loading', loading:
 
 let active: { es: EventSource | null; cancelled: boolean } | null = null;
 
-type ApiError = { code: string; message: string; minutes?: number };
+export type ApiError = { code: string; message: string; minutes?: number };
 
 async function postJson<T>(url: string, body: unknown): Promise<T | ApiError> {
   try {
@@ -19,7 +19,7 @@ async function postJson<T>(url: string, body: unknown): Promise<T | ApiError> {
   }
 }
 
-export function isApiError(x: unknown): x is ApiError {
+export function isApiError<T>(x: T | ApiError): x is ApiError {
   return typeof x === 'object' && x !== null && 'code' in x && 'message' in x;
 }
 

@@ -134,6 +134,12 @@ importers:
         specifier: 1.56.1
         version: 1.56.1
     devDependencies:
+      '@napi-rs/canvas':
+        specifier: 1.0.13
+        version: 1.0.13
+      '@weshot/frame':
+        specifier: workspace:*
+        version: link:../../packages/frame
       tsup:
         specifier: ^8.5.0
         version: 8.5.1(jiti@2.7.0)(postcss@8.5.31)(tsx@4.23.15)(typescript@5.9.3)

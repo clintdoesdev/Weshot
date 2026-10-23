@@ -61,7 +61,7 @@ export async function loadPage(capture: CaptureSettings, deps: CaptureDeps) {
 }
 
 /** Scroll through the page so lazy images load, then return to the top. */
-async function lazyLoadPass(page: Page): Promise<void> {
+export async function lazyLoadPass(page: Page): Promise<void> {
   await page.evaluate(async (max) => {
     const step = Math.max(200, Math.floor(window.innerHeight * 0.8));
     for (let y = 0; y < Math.min(document.documentElement.scrollHeight, max); y += step) {

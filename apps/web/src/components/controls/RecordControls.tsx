@@ -21,7 +21,10 @@ export function RecordControls() {
       <button
         type="button"
         disabled={recording}
-        onClick={() => void startRecording()}
+        onClick={() => {
+          useEditor.getState().setActiveTab('record');
+          void startRecording();
+        }}
         className="btn-secondary inline-flex h-12 items-center justify-center gap-2 rounded-[14px] px-4 text-[15px]"
       >
         <CircleDot size={18} strokeWidth={1.75} aria-hidden="true" />

@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve, sep } from 'node:path';
-import { DeleteObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 /**
@@ -16,6 +16,7 @@ export interface Storage {
   /** URL the browser can PUT to directly. */
   presignPut(key: string, contentType: string, maxBytes: number): Promise<{ url: string; headers: Record<string, string> }>;
   size(key: string): Promise<number | null>;
+  get(key: string): Promise<Buffer | null>;
   delete(key: string): Promise<void>;
 }
 
@@ -72,6 +73,14 @@ class R2Storage implements Storage {
       return null;
     }
   }
+  async get(key: string) {
+    try {
+      const res = await this.client.send(new GetObjectCommand({ Bucket: this.bucket, Key: key }));
+      return res.Body ? Buffer.from(await res.Body.transformToByteArray()) : null;
+    } catch {
+      return null;
+    }
+  }
   async delete(key: string) {
     await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
   }
@@ -121,6 +130,9 @@ export class LocalStorage implements Storage {
     } catch {
       return null;
     }
+  }
+  async get(key: string) {
+    return (await this.read(key))?.body ?? null;
   }
   async size(key: string) {
     try {

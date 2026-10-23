@@ -62,3 +62,16 @@ Choices made where `WESHOT_PRODUCT_SPEC.md` and `WESHOT_UI_SPEC.md` are silent. 
 - **Mocked worker for e2e** (`E2E_MOCK_WORKER=1`): an in-memory job runner inside the web app. Test hosts choose the outcome (`timeout.test`, `bot.test`, `error500.test`, `private.test`), and fixtures are served from `/e2e/*` only in that mode.
 - **Full-page captures taller than 16,000 px** are cut, and a toast says "This page is taller than 16,000 px, so the capture stops there."
 - **Mobile viewports** (width ≤ 600) capture with `isMobile`, touch and a mobile Chrome user agent; others use a desktop Chrome user agent that matches the bundled Chromium version.
+
+## Phase 5 — recording
+
+- **Record layout.** The editor switches to the UI spec §3.2 layout (preview panel plus a 420 px aside with a 3×2 tab grid) when the Record tab is selected or a recording is running. The full options (type, sections, length, easing, pauses, cursor, frame rate, format) need a home before Record is pressed, and the six-tile Record tile only has room for length and the button. Other tabs work inside the aside while recording ("You can keep styling while it records."). Choosing another tab when idle returns to the six tiles. On mobile the Record tab shows the same panel.
+- **Section tour.** Users list CSS selectors, one per line. Left empty, the tour visits the page's own `section`, `main > div` and `h2` blocks (up to 8 stops).
+- **Frames** are captured one at a time (scroll, then CDP `Page.captureScreenshot` as JPEG) on a virtual timeline, so motion is perfectly smooth whatever the capture speed. Device scale is just enough for the content area (1x or 2x).
+- **Cursor** is a DOM overlay injected into the page (black arrow with a white outline and a yellow ripple ring), so it is part of the page frames and is masked with them.
+- **Compositing.** The template is opaque everywhere except the content hole with its rounded bottom corners, so laying page frames under the template *is* the rounded-corner alpha mask. A transparent background records on black, because MP4, WebM and GIF here have no alpha.
+- **Video size** is the canvas setting scaled so the longest side is at most 1920 px, rounded to even dimensions for yuv420p. GIF is 800 px wide at 15 fps (product spec §4.7); the GIF format caps length at 15 s and locks the frame rate.
+- **Stop** (`POST /api/jobs/:id/stop`, not in the spec's API table) sets a Redis flag. The worker stops capturing and encodes what it has.
+- **WebM** uses `libvpx-vp9 -crf 32 -b:v 0` as specified, plus `-row-mt 1 -deadline good -cpu-used 5` for reasonable encode times.
+- **Uploads** (`/api/uploads`) are limited to 60 per hour per hashed IP. Templates must be PNG and at most 8 MB, checked again when `/api/record` is called. Templates are deleted once the recording finishes.
+- **Status pill labels**: "Loading page", "Recording" and "Encoding", with time in Geist Mono ("7.2 s / 12 s").
