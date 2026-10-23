@@ -30,6 +30,11 @@ export default tseslint.config(
     files: ['apps/web/**/*.{ts,tsx}'],
     plugins: { '@next/next': nextPlugin },
     settings: { next: { rootDir: 'apps/web/' } },
-    rules: { ...nextPlugin.configs.recommended.rules, ...nextPlugin.configs['core-web-vitals'].rules },
+    rules: {
+      ...nextPlugin.configs.recommended.rules,
+      ...nextPlugin.configs['core-web-vitals'].rules,
+      // App Router only; there is no pages directory.
+      '@next/next/no-html-link-for-pages': 'off',
+    },
   },
 );

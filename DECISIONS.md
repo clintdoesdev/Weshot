@@ -27,3 +27,21 @@ Choices made where `WESHOT_PRODUCT_SPEC.md` and `WESHOT_UI_SPEC.md` are silent. 
 - **Video template**: with `source = null` the content area is punched out with `destination-out` (rounded bottom corners), so page frames composited underneath show through.
 - **Snapshot tests** run in Node with `@napi-rs/canvas` and a bundled Inter font (OFL) for stable text. Comparison uses pixelmatch with a 0.2 % pixel tolerance to absorb anti-aliasing differences between Skia builds. Update with `UPDATE_SNAPSHOTS=1 pnpm --filter @weshot/frame test`.
 - **Demo page.** The first-visit preview shows a fake landing page ("Queuely") painted by `drawDemoPage` in `packages/frame`, using `system-ui`.
+
+## Phase 3 — landing page and editor (image mode)
+
+- **Pixel parity without `clip()`.** Chromium anti-aliases `ctx.clip()` on fractional coordinates differently on a main-thread canvas than on a worker `OffscreenCanvas`. `renderFrame` therefore draws the window body into a scratch layer and masks it with a filled path (`destination-in`), and both canvases use `willReadFrequently` (CPU raster). The e2e suite asserts **zero** differing pixels between the worker export and a main-thread render at 1x, 2x and 4x, including grain, blur and title bar text.
+- **Preview stage.** The stage is a dark well (min height 520 px desktop, 290 px mobile) with the rendered canvas centred inside it. The UI spec says the stage background is the current background, but the canvas already paints the background, and filling the letterbox area with a CSS copy of it leaves a visible seam for gradients, so the well stays neutral.
+- **Zoom** ranges from half of Fit to 200 % of output pixels. "Fit" resets it. Pinch to zoom on mobile.
+- **Export scale** (1x, 2x, 4x) has a secondary segmented control in the Export tile and in the mobile download sheet. The scope requires these scales but the tile layout does not show a control for them. Scale drops automatically when a canvas would exceed browser limits (16,384 px per side, 268 MP, or 16.7 MP on iOS), and a toast says so.
+- **Capture tile extras.** Color scheme (Auto, Light, Dark) and Delay (0–10 s) sit in the Capture tile under the four controls the UI spec lists, because they are in scope and need a home. Traffic lights (Color, Mono, Hidden) sit in the Window tile. Window scale and Offset X/Y sit in the Layout tile.
+- **Capture controls with the demo page.** These stay live on first visit (the spec says "tiles are live") and are disabled only for pasted images.
+- **Narrow tiles.** At the specified 2-column, 460 px tile column, segmented controls sit under their label instead of beside it.
+- **User presets.** "Save current" turns into an inline name field. A "Preset options" menu holds Export presets, Import presets and Delete {name}. Uploaded background images are stored in presets as a JPEG data URL, at most 2400 px.
+- **Copy image** always copies a PNG, the only type every clipboard accepts.
+- **Images over 8,000 px** on the longest side are scaled down rather than rejected. The spec only has error copy for files over 25 MB. Non-image files show "That file isn't an image WeShot can read."
+- **Small copy the specs leave open.** Toasts: "Couldn't copy. Use Download instead.", "Couldn't export the image. Try a smaller size.", "{n} presets imported", "That file isn't a WeShot presets file.". The body text of the three step cards and of the recordings section. "Skip to the editor" link. All sentence case, no emoji.
+- **Mobile editor** is a full-screen layer opened with `history.pushState('#editor')`, so the Back button closes it. The logo in its header also goes back. `/#editor` on a phone opens it directly.
+- **Gallery thumbnails, the recordings card, the mobile demo card and the OG image** are static WebP/PNG files rendered by `apps/web/scripts/render-static.ts` with the same `renderFrame`, which keeps the landing page light. Re-run with `pnpm --filter @weshot/web render:static`. The "desktop and phone" card overlays a phone-sized window. Clicking it loads the Lemon preset.
+- **Shortcuts dialog** opens with Shift + / (the `?` key). It lists the shortcuts from UI spec §6.
+- **Test hooks.** `window.__weshot` is installed only when `NEXT_PUBLIC_E2E=1`.

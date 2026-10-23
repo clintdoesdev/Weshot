@@ -5,7 +5,7 @@ import { type Canvas, GlobalFonts, createCanvas, type SKRSContext2D } from '@nap
 import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
 import type { FrameSettings } from '@weshot/shared';
-import { drawDemoPage, renderFrame, resolveCanvasSize, type Ctx2D, type FrameResources, type FrameSource } from '../src';
+import { drawDemoPage, renderFrame, resolveCanvasSize, type Ctx2D, type FrameResources, type FrameSource, type ScratchCanvas } from '../src';
 
 const here = dirname(fileURLToPath(import.meta.url));
 for (const w of [400, 500, 600]) GlobalFonts.registerFromPath(join(here, `fixtures/inter-latin-${w}-normal.woff2`), 'WeShotTest');
@@ -21,6 +21,8 @@ export function asCtx(ctx: SKRSContext2D): Ctx2D {
 export function asSource(canvas: Canvas): FrameSource {
   return canvas as unknown as FrameSource;
 }
+
+export const scratch = (w: number, h: number) => createCanvas(w, h) as unknown as ScratchCanvas;
 
 export function demoSource(width = 1440, height = 900): Canvas {
   const c = createCanvas(width, height);
@@ -38,6 +40,7 @@ export function render(
   const canvas = createCanvas(Math.round(size.width * scale), Math.round(size.height * scale));
   const result = renderFrame(asCtx(canvas.getContext('2d')), source ? asSource(source) : null, settings, { ...size, scale }, {
     fontFamily: FONT,
+    createCanvas: scratch,
     url: 'https://queuely.app/',
     title: 'Queuely — lines that move themselves',
     ...resources,

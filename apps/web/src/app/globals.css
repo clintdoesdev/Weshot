@@ -1,0 +1,355 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------- tokens, UI spec §1.1 ---------- */
+:root {
+  --ws-black: #000000;
+  --ws-ink-900: #0a0a0a;
+  --ws-chrome-dark: rgba(28, 28, 30, 0.88);
+  --ws-chrome-light: rgba(245, 245, 247, 0.88);
+
+  --ws-yellow: #ffd60a;
+  --ws-yellow-soft: rgba(255, 214, 10, 0.14);
+  --ws-yellow-line: rgba(255, 214, 10, 0.7);
+  --ws-on-yellow: #000000;
+
+  --ws-text: #ffffff;
+  --ws-text-2: rgba(255, 255, 255, 0.72);
+  --ws-text-3: rgba(255, 255, 255, 0.65);
+  --ws-placeholder: rgba(255, 255, 255, 0.55);
+
+  --ws-glass-1: rgba(255, 255, 255, 0.05);
+  --ws-glass-2: rgba(255, 255, 255, 0.07);
+  --ws-glass-3: rgba(255, 255, 255, 0.1);
+  --ws-glass-btn: rgba(255, 255, 255, 0.08);
+  --ws-glass-on: rgba(255, 255, 255, 0.16);
+  --ws-well: rgba(0, 0, 0, 0.35);
+  --ws-line-1: rgba(255, 255, 255, 0.12);
+  --ws-line-2: rgba(255, 255, 255, 0.16);
+  --ws-line-3: rgba(255, 255, 255, 0.22);
+  --ws-highlight: rgba(255, 255, 255, 0.22);
+
+  --ws-rec: #ff453a;
+
+  --ws-tl-red: #ff5f57;
+  --ws-tl-yellow: #febc2e;
+  --ws-tl-green: #28c840;
+
+  color-scheme: dark;
+}
+
+html {
+  background: var(--ws-black);
+  color: var(--ws-text);
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: 24px;
+}
+
+body {
+  background: var(--ws-black);
+  font-family: var(--font-givonic, 'Givonic'), var(--font-outfit, 'Outfit'), system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+@media (max-width: 767px) {
+  body {
+    font-size: 15px;
+  }
+}
+
+/* Focus ring, UI spec §8: 2px solid yellow, 3px offset, everywhere. */
+:focus-visible {
+  outline: 2px solid var(--ws-yellow);
+  outline-offset: 3px;
+}
+
+::placeholder {
+  color: var(--ws-placeholder);
+}
+
+::selection {
+  background: rgba(255, 214, 10, 0.35);
+}
+
+@layer components {
+  /* ---------- glass recipes, UI spec §1.2 ---------- */
+  .glass-nav {
+    background: var(--ws-glass-2);
+    -webkit-backdrop-filter: blur(28px) saturate(170%);
+    backdrop-filter: blur(28px) saturate(170%);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: inset 0 1px 0 var(--ws-highlight), 0 12px 40px rgba(0, 0, 0, 0.4);
+  }
+  .glass-bar {
+    background: var(--ws-glass-3);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    backdrop-filter: blur(30px) saturate(180%);
+    border: 1px solid var(--ws-line-3);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.35),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.06),
+      0 24px 60px rgba(0, 0, 0, 0.45);
+  }
+  .glass-panel {
+    background: var(--ws-glass-1);
+    -webkit-backdrop-filter: blur(36px) saturate(170%);
+    backdrop-filter: blur(36px) saturate(170%);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 40px 100px rgba(0, 0, 0, 0.55);
+  }
+  .glass-tile {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--ws-line-1);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  }
+  .glass-sheet {
+    background: rgba(28, 28, 30, 0.58);
+    -webkit-backdrop-filter: blur(42px) saturate(180%);
+    backdrop-filter: blur(42px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.17);
+    border-bottom: 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  }
+  .glass-sheet-strong {
+    background: rgba(28, 28, 30, 0.62);
+  }
+  .glass-pill-status {
+    background: rgba(0, 0, 0, 0.6);
+    -webkit-backdrop-filter: blur(24px) saturate(170%);
+    backdrop-filter: blur(24px) saturate(170%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  /* Menus, dialogs and toasts reuse the sheet glass. */
+  .glass-popover {
+    background: rgba(28, 28, 30, 0.72);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 24px 60px rgba(0, 0, 0, 0.5);
+  }
+
+  /* ---------- buttons, UI spec §2.10 ---------- */
+  .btn-primary {
+    background: var(--ws-yellow);
+    color: var(--ws-on-yellow);
+    font-weight: 600;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    transition: background-color 140ms ease, opacity 140ms ease, color 140ms ease;
+  }
+  .btn-primary:active {
+    background: #f0c800;
+  }
+  .btn-primary:disabled,
+  .btn-primary[aria-disabled='true'] {
+    background: rgba(255, 214, 10, 0.35);
+    color: rgba(255, 255, 255, 0.85);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+  .btn-secondary {
+    background: var(--ws-glass-btn);
+    border: 1px solid var(--ws-line-2);
+    color: var(--ws-text);
+    transition: background-color 140ms ease, opacity 140ms ease;
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.12);
+  }
+  .btn-secondary:active:not(:disabled) {
+    background: var(--ws-glass-on);
+  }
+  .btn-secondary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* ---------- ambient glow, UI spec §1.3 ---------- */
+  .ws-glow {
+    position: absolute;
+    pointer-events: none;
+    background: radial-gradient(closest-side, rgba(255, 214, 10, 0.55), rgba(255, 214, 10, 0.12) 60%, rgba(255, 214, 10, 0));
+    filter: blur(30px);
+  }
+
+  /* ---------- slider, UI spec §2.7 ---------- */
+  .ws-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 24px;
+    background: transparent;
+    cursor: pointer;
+    --fill: 50%;
+  }
+  .ws-range::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 999px;
+    background: linear-gradient(to right, var(--ws-yellow) var(--fill), rgba(255, 255, 255, 0.18) var(--fill));
+  }
+  .ws-range::-moz-range-track {
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+  }
+  .ws-range::-moz-range-progress {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--ws-yellow);
+  }
+  .ws-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    margin-top: -7px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  }
+  .ws-range::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  }
+  .ws-range:focus-visible {
+    outline: none;
+  }
+  .ws-range:focus-visible::-webkit-slider-thumb {
+    outline: 2px solid var(--ws-yellow);
+    outline-offset: 3px;
+  }
+  .ws-range:focus-visible::-moz-range-thumb {
+    outline: 2px solid var(--ws-yellow);
+    outline-offset: 3px;
+  }
+
+  /* ---------- skeleton shimmer, UI spec §4 ---------- */
+  .ws-shimmer {
+    background: linear-gradient(100deg, rgba(255, 255, 255, 0.06) 20%, rgba(255, 255, 255, 0.1) 40%, rgba(255, 255, 255, 0.06) 60%);
+    background-size: 200% 100%;
+    animation: ws-shimmer 1.2s linear infinite;
+  }
+}
+
+@keyframes ws-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@keyframes ws-frame-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.ws-frame-in {
+  animation: ws-frame-in 240ms ease-out both;
+}
+
+@keyframes ws-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.ws-fade-in {
+  animation: ws-fade-in 240ms ease-out both;
+}
+
+@keyframes ws-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.ws-pulse {
+  animation: ws-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes ws-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.ws-sheet-up {
+  animation: ws-sheet-up 280ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@keyframes ws-ripple {
+  from {
+    transform: scale(0.4);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+/* No backdrop-filter: raise glass fills so text stays readable (UI spec §1.1, §4). */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-nav,
+  .glass-bar,
+  .glass-panel,
+  .glass-sheet,
+  .glass-pill-status,
+  .glass-popover {
+    background: rgba(28, 28, 30, 0.92);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .ws-shimmer {
+    animation: none;
+  }
+}
+
+.sr-only-focusable:not(:focus):not(:focus-within) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

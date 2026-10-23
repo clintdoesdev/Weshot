@@ -1,0 +1,26 @@
+import { expect, test } from '@playwright/test';
+import { pasteImage } from './helpers';
+
+test('mobile: Frame it opens the editor with the bottom sheet and download sheet', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByText('Free, no account. Or')).toBeVisible();
+  await page.getByRole('button', { name: 'Open the editor' }).click();
+  const editor = page.getByRole('region', { name: 'Editor' });
+  await expect(editor).toBeVisible();
+  await expect(editor.getByRole('tab', { name: 'Background' })).toHaveAttribute('aria-selected', 'true');
+  await expect(editor.getByRole('button', { name: 'Use Honey background' })).toBeVisible();
+  await editor.getByRole('button', { name: 'Download', exact: true }).click();
+  const sheet = page.getByRole('dialog', { name: 'Download' });
+  await expect(sheet).toBeVisible();
+  await sheet.getByText('Instagram').click();
+  await expect(sheet.getByRole('button', { name: 'Download PNG' })).toBeVisible();
+  await sheet.getByRole('button', { name: 'Close' }).click();
+  await page.goBack();
+  await expect(editor).toBeHidden();
+});
+
+test('mobile: pasting an image opens the editor', async ({ page }) => {
+  await page.goto('/');
+  await pasteImage(page);
+  await expect(page.getByRole('region', { name: 'Editor' }).getByRole('img', { name: /pasted screenshot/ })).toBeVisible();
+});

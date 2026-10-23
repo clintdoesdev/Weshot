@@ -31,7 +31,14 @@ export type FrameResources = {
    * Defaults to 1440 × 900.
    */
   sourceSize?: Size;
+  /**
+   * Creates a scratch canvas for the window layer. Defaults to OffscreenCanvas, then document.createElement.
+   * Node tests pass @napi-rs/canvas here.
+   */
+  createCanvas?: (width: number, height: number) => ScratchCanvas;
 };
+
+export type ScratchCanvas = { width: number; height: number; getContext(type: '2d'): unknown } & CanvasImageSource;
 
 export type FrameLayout = {
   canvas: Size;
