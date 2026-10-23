@@ -67,7 +67,8 @@ export function PreviewStage({ variant, className }: Props) {
   const aspect = out.height / out.width;
 
   const pad = variant === 'desktop' ? 24 : 12;
-  const stageHeight = variant === 'desktop' ? Math.min(720, Math.max(520, box.width * aspect + pad * 2)) : 290;
+  // Mobile: the height is set by the parent's CSS (it shrinks on short screens and when the sheet expands).
+  const stageHeight = variant === 'desktop' ? Math.min(720, Math.max(520, box.width * aspect + pad * 2)) : box.height || 290;
   const fit = box.width > 0 ? Math.min((box.width - pad * 2) / out.width, (stageHeight - pad * 2) / out.height) : 0;
   const z = zoom ?? fit;
 
@@ -131,7 +132,7 @@ export function PreviewStage({ variant, className }: Props) {
     <div
       ref={wrap}
       className={cx('relative w-full overflow-hidden', variant === 'desktop' ? 'rounded-[16px]' : 'rounded-[22px] border border-ws-line-1', className)}
-      style={{ height: stageHeight, background: 'rgba(0,0,0,0.25)', touchAction: variant === 'mobile' ? 'pan-y' : undefined }}
+      style={{ height: variant === 'desktop' ? stageHeight : '100%', background: 'rgba(0,0,0,0.25)', touchAction: variant === 'mobile' ? 'pan-y' : undefined }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}

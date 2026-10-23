@@ -1,7 +1,7 @@
 'use client';
 
 import { Copy, Download } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { copyImage } from '@/lib/actions';
 import { EDITOR_TABS, useEditor } from '@/lib/store';
 import { BackgroundControls } from '../controls/BackgroundControls';
@@ -25,6 +25,8 @@ export function MobileEditor() {
   const tab = useEditor((s) => s.activeTab);
   const setTab = useEditor((s) => s.setActiveTab);
   const setDownloadOpen = useEditor((s) => s.setDownloadSheetOpen);
+  const [expanded, setExpanded] = useState(false);
+  const drag = useRef<{ y: number; moved: boolean } | null>(null);
 
   useEffect(() => {
     const onPop = () => {
@@ -49,7 +51,8 @@ export function MobileEditor() {
     <div
       role="region"
       aria-label="Editor"
-      className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-ws-black md:hidden"
+      // 100dvh: the visible screen, so the sheet's footer never hides behind the browser's toolbars.
+      className="fixed inset-x-0 top-0 z-50 flex h-[100dvh] flex-col overflow-hidden bg-ws-black md:hidden"
       onKeyDown={(e) => handleEditorKeyDown(e)}
     >
       <Glow style={{ width: 560, height: 560, left: '50%', top: 40, transform: 'translateX(-50%)' }} />
@@ -58,18 +61,55 @@ export function MobileEditor() {
           <Logo size="sm" />
         </button>
       </header>
-      <div className="relative shrink-0 px-4 pb-3">
-        <PasteBar variant="compact" inputId="ws-paste-input-m" />
+      {expanded ? null : (
+        <div className="relative shrink-0 px-4 pb-3">
+          <PasteBar variant="compact" inputId="ws-paste-input-m" />
+        </div>
+      )}
+      <div
+        className="relative shrink-0 px-4 transition-[height] duration-[280ms] ease-sheet"
+        // Collapsed: up to 290 px (UI spec §3.4) but never more than about a third of a short screen.
+        style={{ height: expanded ? 'clamp(120px, 22dvh, 180px)' : 'clamp(150px, 30dvh, 290px)' }}
+      >
+        <PreviewStage variant="mobile" className="h-full" />
       </div>
-      <div className="relative shrink-0 px-4">
-        <PreviewStage variant="mobile" />
-      </div>
-      <div className="relative shrink-0 px-4 py-3">
-        <PresetChips scroll />
-      </div>
-      <div className="glass-sheet relative flex min-h-[240px] flex-1 flex-col rounded-t-[30px]">
-        <div aria-hidden="true" className="mx-auto mt-2.5 h-[5px] w-10 shrink-0 rounded-pill bg-white/30" />
-        <div className="no-scrollbar shrink-0 overflow-x-auto px-4 pt-3">
+      {expanded ? null : (
+        <div className="relative shrink-0 px-4 py-3">
+          <PresetChips scroll />
+        </div>
+      )}
+      <div className={`glass-sheet relative flex min-h-0 flex-1 flex-col rounded-t-[30px] ${expanded ? 'mt-3' : ''}`}>
+        {/* Grabber: tap, or drag up/down, to give the controls more or less of the screen. */}
+        <button
+          type="button"
+          aria-expanded={expanded}
+          aria-controls="mobile-tab-panel"
+          aria-label={expanded ? 'Show the preview larger' : 'Show more controls'}
+          onClick={() => {
+            if (drag.current?.moved) return;
+            setExpanded((x) => !x);
+          }}
+          onPointerDown={(e) => {
+            drag.current = { y: e.clientY, moved: false };
+            e.currentTarget.setPointerCapture(e.pointerId);
+          }}
+          onPointerMove={(e) => {
+            const d = drag.current;
+            if (!d) return;
+            const dy = e.clientY - d.y;
+            if (Math.abs(dy) > 24 && !d.moved) {
+              d.moved = true;
+              setExpanded(dy < 0);
+            }
+          }}
+          onPointerUp={() => {
+            setTimeout(() => (drag.current = null), 0);
+          }}
+          className="flex h-8 w-full shrink-0 touch-none items-center justify-center rounded-t-[30px]"
+        >
+          <span aria-hidden="true" className="h-[5px] w-10 rounded-pill bg-white/30" />
+        </button>
+        <div className="no-scrollbar shrink-0 overflow-x-auto px-4 pt-1">
           <SegmentedControl
             label="Editor sections"
             mode="tabs"

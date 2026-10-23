@@ -46,5 +46,8 @@ export const DEFAULT_FONT_FAMILY =
 /** Fallback page size for layout when there is no source image (video template, empty state). */
 export const DEFAULT_SOURCE_SIZE = { width: 1440, height: 900 } as const;
 
-/** Sources taller than this (height / width) are treated as full-page captures and cropped from the top in fixed canvases. */
-export const TALL_SOURCE_ASPECT = 2;
+/**
+ * Sources taller than this (height / width) are treated as full-page captures and cropped from the top in
+ * fixed canvases. Phone screenshots (up to about 2.3 : 1) stay whole.
+ */
+export const TALL_SOURCE_ASPECT = 3;

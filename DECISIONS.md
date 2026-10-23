@@ -103,3 +103,9 @@ Choices made where `WESHOT_PRODUCT_SPEC.md` and `WESHOT_UI_SPEC.md` are silent. 
 - Job ids are UUIDs (`crypto.randomUUID`) instead of cuids.
 - Redis must use `maxmemory-policy noeviction` (BullMQ requirement, and records must not be evicted). Local `docker-compose.yml` sets it; DEPLOY.md says where to set it on Redis Cloud.
 - The Phase 1 notes about Prisma, the Prisma schema, migrations and `DATABASE_URL` no longer apply.
+
+## Mobile editor follow-up
+
+- **Expandable controls sheet.** The grabber is a real button: tap it, or drag up/down, to expand or collapse. Expanded hides the paste bar and presets and shrinks the preview to `clamp(120px, 22dvh, 180px)`, so the controls get most of the screen while changes stay visible. Collapsed, the preview is `clamp(150px, 30dvh, 290px)` instead of a fixed 290 px, so short phones still show controls.
+- **The mobile editor uses `100dvh`** (the visible screen), so the Download footer never sits behind mobile browser toolbars.
+- **Full-page threshold raised from 2 : 1 to 3 : 1.** Phone screenshots (about 2.2 : 1) were being treated as full-page captures and cropped to their top. They are now shown whole.

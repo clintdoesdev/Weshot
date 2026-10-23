@@ -24,3 +24,21 @@ test('mobile: pasting an image opens the editor', async ({ page }) => {
   await pasteImage(page);
   await expect(page.getByRole('region', { name: 'Editor' }).getByRole('img', { name: /pasted screenshot/ })).toBeVisible();
 });
+
+test('mobile: the controls sheet expands and collapses from the grabber', async ({ page }) => {
+  await openHome(page);
+  await page.getByRole('button', { name: 'Open the editor' }).click();
+  const editor = page.getByRole('region', { name: 'Editor' });
+  const grabber = editor.getByRole('button', { name: 'Show more controls' });
+  await expect(grabber).toHaveAttribute('aria-expanded', 'false');
+  const panel = editor.locator('#mobile-tab-panel');
+  const before = (await panel.boundingBox())!.height;
+  await grabber.click();
+  const collapse = editor.getByRole('button', { name: 'Show the preview larger' });
+  await expect(collapse).toHaveAttribute('aria-expanded', 'true');
+  await expect.poll(async () => (await panel.boundingBox())!.height).toBeGreaterThan(before + 100);
+  // The preview stays on screen so changes are still visible.
+  await expect(editor.getByRole('img', { name: /^Framed/ })).toBeVisible();
+  await collapse.click();
+  await expect(editor.getByRole('button', { name: 'Show more controls' })).toBeVisible();
+});
