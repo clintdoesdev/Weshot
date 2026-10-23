@@ -8,3 +8,5 @@ onlyBuiltDependencies:
   - unrs-resolver
   - msgpackr-extract
   - ffmpeg-static
+ignoredBuiltDependencies:
+  - core-js
