@@ -74,3 +74,29 @@ describe('hashIp', () => {
     expect(a).not.toBe(b);
   });
 });
+
+describe('records', () => {
+  it('stores jobs with a 30-day TTL and updates them', async (ctx) => {
+    if (!available) ctx.skip();
+    const { jobRecords } = await import('../src');
+    const job = await jobRecords.create(redis, { kind: 'CAPTURE', status: 'queued', url: 'https://example.com/', ipHash: 'h' });
+    await jobRecords.update(redis, job.id, { status: 'done', assetKey: 'captures/x.png', durationMs: 1234 });
+    const got = await jobRecords.get(redis, job.id);
+    expect(got).toMatchObject({ status: 'done', assetKey: 'captures/x.png', durationMs: 1234, url: 'https://example.com/' });
+    const ttl = await redis.ttl(`weshot:jobrec:${job.id}`);
+    expect(ttl).toBeGreaterThan(29 * 86400);
+  });
+
+  it('stores shares until they expire and lists expired files for cleanup', async (ctx) => {
+    if (!available) ctx.skip();
+    const { shareRecords } = await import('../src');
+    const id = Math.random().toString(36).slice(2, 12);
+    const expiresAt = new Date(Date.now() + 60_000);
+    await shareRecords.create(redis, { id, assetKey: `shares/d/${id}.png`, kind: 'image', width: 10, height: 20, deleteHash: 'abc', expiresAt });
+    expect(await shareRecords.find(redis, id)).toMatchObject({ id, width: 10, height: 20, kind: 'image' });
+    expect((await shareRecords.expired(redis, Date.now())).some((s) => s.id === id)).toBe(false);
+    expect((await shareRecords.expired(redis, Date.now() + 120_000)).some((s) => s.id === id)).toBe(true);
+    await shareRecords.remove(redis, id, `shares/d/${id}.png`);
+    expect(await shareRecords.find(redis, id)).toBeNull();
+  });
+});

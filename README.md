@@ -17,7 +17,6 @@ apps/worker/       BullMQ consumer: Playwright Chromium behind an SSRF proxy, FF
 packages/frame/    renderFrame(): the compositor behind preview, export and video templates
 packages/shared/   Zod schemas, settings types, presets, backgrounds, limits, error copy
 packages/server/   Node-only helpers shared by web and worker: storage (R2/local), Redis, queues, rate limits
-prisma/            schema.prisma and migrations
 ```
 
 ## Run it
@@ -25,8 +24,7 @@ prisma/            schema.prisma and migrations
 ```bash
 pnpm install
 cp .env.example .env
-pnpm services:up          # Postgres + Redis (Docker)
-pnpm db:migrate
+pnpm services:up          # Redis (Docker)
 pnpm dev                  # web on http://localhost:3000 and the worker
 ```
 
@@ -36,7 +34,7 @@ Without R2 variables, captures, recordings and share files are stored in `.data/
 | Script | What it does |
 | --- | --- |
 | `pnpm dev` | Web + worker in watch mode |
-| `pnpm build` | Prisma client + every package |
+| `pnpm build` | Every package |
 | `pnpm test` | Vitest everywhere: schemas, compositor snapshots, Redis limits, SSRF suite, recordings |
 | `pnpm test:e2e` | Playwright e2e (desktop + mobile, axe) against a production build with a mocked worker |
 | `pnpm lint` / `pnpm typecheck` | ESLint / `tsc --noEmit` in strict mode |

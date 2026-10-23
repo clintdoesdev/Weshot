@@ -26,9 +26,7 @@ COPY apps/worker/package.json apps/worker/
 COPY packages/shared/package.json packages/shared/
 COPY packages/server/package.json packages/server/
 COPY packages/frame/package.json packages/frame/
-COPY prisma ./prisma
-RUN pnpm install --frozen-lockfile --filter weshot --filter "@weshot/worker..." \
- && pnpm db:generate
+RUN pnpm install --frozen-lockfile --filter weshot --filter "@weshot/worker..."
 
 COPY tsconfig.base.json ./
 COPY packages/shared packages/shared

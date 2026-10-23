@@ -12,6 +12,6 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   // Same answer for a missing share and a wrong token, so ids cannot be probed.
   if (!share || !token || !tokenMatches(token, share.deleteHash)) return new Response(null, { status: 404 });
   await getStorage().delete(share.assetKey).catch(() => undefined);
-  await shares.remove(id);
+  await shares.remove(id, share.assetKey);
   return new Response(null, { status: 204 });
 }

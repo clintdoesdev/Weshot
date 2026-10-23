@@ -1,17 +1,21 @@
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { loadEnvConfig } from '@next/env';
 import type { NextConfig } from 'next';
 
-// One .env at the repo root serves web, worker and Prisma.
-const repoRoot = new URL('../..', import.meta.url).pathname;
-loadEnvConfig(repoRoot);
+// Next runs with apps/web as the working directory; the monorepo root is two levels up.
+const repoRoot = [resolve(process.cwd(), '../..'), process.cwd()].find((d) => existsSync(resolve(d, 'pnpm-workspace.yaml'))) ?? process.cwd();
+// One .env at the repo root serves web and worker.
+// forceReload: Next has already loaded (empty) env files from apps/web, and @next/env caches that result.
+loadEnvConfig(repoRoot, process.env.NODE_ENV !== 'production', console, true);
 
 const config: NextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@weshot/frame', '@weshot/shared', '@weshot/server'],
-  // Monorepo: trace workspace packages and the Prisma engine from the repo root.
+  // Monorepo: trace workspace packages from the repo root.
   outputFileTracingRoot: repoRoot,
   // Native or dynamically-loaded server deps stay in node_modules instead of the route bundles.
-  serverExternalPackages: ['bullmq', 'ioredis', '@prisma/client', '@aws-sdk/client-s3', '@aws-sdk/s3-request-presigner'],
+  serverExternalPackages: ['bullmq', 'ioredis', '@aws-sdk/client-s3', '@aws-sdk/s3-request-presigner'],
   poweredByHeader: false,
   env: {
     // The spec names the variable TURNSTILE_SITE_KEY; the browser needs it too.

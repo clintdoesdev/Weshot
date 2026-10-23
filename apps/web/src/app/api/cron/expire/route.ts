@@ -1,29 +1,26 @@
-import { getStorage } from '@weshot/server';
-import { LIMITS } from '@weshot/shared';
+import { getRedis, getStorage, shareRecords } from '@weshot/server';
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/server/db';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
 
 /**
- * Daily cleanup (product spec §4.8): expired shares and their files, and Job rows older than 30 days.
- * Vercel Cron calls this with "Authorization: Bearer $CRON_SECRET".
+ * Daily cleanup (product spec §4.8): deletes the files of expired share links. Share and job records
+ * expire on their own through Redis TTLs (30 days). Vercel Cron calls this with "Authorization: Bearer $CRON_SECRET".
  */
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
   if (!secret || req.headers.get('authorization') !== `Bearer ${secret}`) return new Response('Unauthorized', { status: 401 });
-  const now = new Date();
+  const redis = getRedis();
   const storage = getStorage();
   let deletedShares = 0;
   for (;;) {
-    const batch = await db.share.findMany({ where: { expiresAt: { lt: now } }, take: 200, select: { id: true, assetKey: true } });
+    const batch = await shareRecords.expired(redis, Date.now(), 200);
     if (batch.length === 0) break;
     await Promise.all(batch.map((s) => storage.delete(s.assetKey).catch(() => undefined)));
-    await db.share.deleteMany({ where: { id: { in: batch.map((s) => s.id) } } });
+    await Promise.all(batch.map((s) => shareRecords.remove(redis, s.id, s.assetKey)));
     deletedShares += batch.length;
   }
-  const jobs = await db.job.deleteMany({ where: { createdAt: { lt: new Date(now.getTime() - LIMITS.jobRetentionDays * 86_400_000) } } });
-  return NextResponse.json({ deletedShares, deletedJobs: jobs.count });
+  return NextResponse.json({ deletedShares });
 }

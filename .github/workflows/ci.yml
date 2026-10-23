@@ -37,7 +37,6 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm db:generate
       - run: pnpm lint
       - run: pnpm typecheck
       # Chromium for the worker's SSRF and recording tests (real browser through the SSRF proxy).
@@ -64,7 +63,6 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm db:generate
       - run: pnpm --filter @weshot/web exec playwright install --with-deps chromium
       - name: e2e (desktop + mobile, axe accessibility)
         run: pnpm test:e2e

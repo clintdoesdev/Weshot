@@ -4,12 +4,12 @@
 | --- | --- | --- |
 | Web app (`apps/web`) | Vercel | Next.js 15, Node runtime route handlers, daily cron |
 | Worker (`apps/worker`) | Railway | Docker image on `mcr.microsoft.com/playwright:v1.56.1-jammy` + FFmpeg |
-| Postgres, Redis | Railway | Jobs and share links; BullMQ queue and job events |
+| Redis | Vercel Marketplace (Redis Cloud) | The only datastore: BullMQ queue, live job events, rate limits, job records, share links |
 | Storage + CDN | Cloudflare R2 on `cdn.weshot.app` | Lifecycle rules delete temporary files |
 | Bot protection | Cloudflare Turnstile | Invisible, on every capture and record call |
 | Monitoring | Sentry, PostHog | Both optional; nothing loads without keys |
 
-Do the steps in order: Cloudflare, then Railway, then Vercel.
+Do the steps in order: Cloudflare, then Vercel (which creates Redis), then Railway.
 
 ---
 
@@ -52,49 +52,17 @@ Do the steps in order: Cloudflare, then Railway, then Vercel.
 
 ---
 
-## 2. Railway (worker, Postgres, Redis)
+## 2. Vercel (web + Redis)
 
-1. [railway.com](https://railway.com) → **New Project** → **Deploy from GitHub repo** → pick this repository. Railway creates a service; rename it `worker`.
-2. In the project: **+ Create** → **Database** → **PostgreSQL**. Again: **+ Create** → **Database** → **Redis**.
-3. `worker` service → **Settings**:
-   - **Source → Root Directory**: leave empty (the Dockerfile needs the whole monorepo).
-   - **Config-as-code → Railway config file**: `apps/worker/railway.json`. This sets the Dockerfile, runs `pnpm db:deploy` (Prisma migrations) before each deploy, and starts `node apps/worker/dist/index.js`.
-   - **Networking**: no public domain needed; the worker only talks to Redis, Postgres and R2.
-   - **Resources**: start at 1 replica, 4 vCPU / 4 GB (one Chromium per job, up to 4 at once).
-4. `worker` service → **Variables** → add:
-
-   ```
-   DATABASE_URL=${{Postgres.DATABASE_URL}}
-   REDIS_URL=${{Redis.REDIS_URL}}
-   R2_ACCOUNT_ID=<account id>
-   R2_ACCESS_KEY_ID=<access key id>
-   R2_SECRET_ACCESS_KEY=<secret access key>
-   R2_BUCKET=weshot
-   R2_PUBLIC_BASE_URL=https://cdn.weshot.app
-   WORKER_CONCURRENCY=4
-   CAPTURE_TIMEOUT_MS=30000
-   SENTRY_DSN=<optional, worker project DSN>
-   ```
-5. Deploy. The logs should end with `WeShot worker ready (concurrency 4)`.
-6. Postgres and Redis must be reachable from Vercel: Postgres → **Settings → Networking → TCP Proxy → Enable**; same for Redis. Use the **public** URLs (`DATABASE_PUBLIC_URL`, `REDIS_PUBLIC_URL`) on Vercel.
-7. **Scaling (product spec §9)**: when the `capture` queue regularly has more than 20 waiting jobs, raise `numReplicas` in `apps/worker/railway.json` (or **Settings → Deploy → Replicas**). Check depth with `redis-cli -u $REDIS_URL LLEN bull:capture:wait`.
-
----
-
-## 3. Vercel (web)
-
-1. [vercel.com/new](https://vercel.com/new) → import the repository.
-2. **Configure Project**:
-   - **Framework Preset**: Next.js
-   - **Root Directory**: `apps/web` (enable *Include files outside the root directory in the Build Step*, the default)
-   - **Install Command**: `pnpm install --frozen-lockfile`
-   - **Build Command**: `cd ../.. && pnpm db:generate && cd apps/web && pnpm build`
-   - **Node.js Version** (Settings → General): 22.x
-3. **Environment Variables** (Production and Preview):
+1. [vercel.com/new](https://vercel.com/new) → import the repository. Vercel detects two apps: press **Import single project** next to **web** (never the worker; it runs on Railway).
+2. **Configure Project** (defaults are right): Root Directory `apps/web`, preset Next.js. Under **Build and Output Settings** set **Install Command** `pnpm install --frozen-lockfile`. Node.js 22.x (Settings → General).
+3. **Optional Integrations → Redis ("Official Redis for Vercel") → Add.** Create the database in the region closest to your Railway worker. This adds `REDIS_URL` to the project automatically. Then, in the Redis Cloud console for that database:
+   - **Eviction policy: `noeviction`** (required by BullMQ; with eviction on, queued jobs can silently disappear).
+   - Check the plan's **connection limit**. Every open capture or recording progress stream holds one connection, plus a few for the queue; the free tier (30 connections) is fine for testing, but move to a paid plan before launch.
+   - Copy the database's public endpoint as a `rediss://` (TLS) URL; the worker on Railway needs the same `REDIS_URL`.
+4. **Environment Variables** (Production and Preview), besides the `REDIS_URL` the integration added:
 
    ```
-   DATABASE_URL=<Railway Postgres public URL>
-   REDIS_URL=<Railway Redis public URL>
    R2_ACCOUNT_ID=<account id>
    R2_ACCESS_KEY_ID=<access key id>
    R2_SECRET_ACCESS_KEY=<secret access key>
@@ -111,12 +79,40 @@ Do the steps in order: Cloudflare, then Railway, then Vercel.
    BLOCKLIST_EXTRA=<optional, comma-separated domains>
    ```
 
-   Never set `E2E_MOCK_WORKER` or `NEXT_PUBLIC_E2E` outside tests.
-4. **Deploy**. Then **Settings → Domains** → add `weshot.app` (and redirect `www.weshot.app` to it).
-5. **Cron**: `apps/web/vercel.json` schedules `GET /api/cron/expire` daily at 03:17 UTC. Vercel sends `Authorization: Bearer $CRON_SECRET` automatically once `CRON_SECRET` is set. Check **Settings → Cron Jobs** after the first deploy. To run it by hand:
+   Never set `E2E_MOCK_WORKER` or `NEXT_PUBLIC_E2E` outside tests. Until you have a domain, use the `*.vercel.app` URL for `NEXT_PUBLIC_SITE_URL`.
+5. **Deploy**. Then **Settings → Domains** → add `weshot.app` (and redirect `www.weshot.app` to it).
+6. **Cron**: `apps/web/vercel.json` schedules `GET /api/cron/expire` daily at 03:17 UTC to delete the files of expired share links (the records themselves expire through Redis TTLs). Vercel sends `Authorization: Bearer $CRON_SECRET` automatically. To run it by hand:
    `curl -H "Authorization: Bearer $CRON_SECRET" https://weshot.app/api/cron/expire`
-6. **Function duration**: `/api/jobs/[id]/events` streams for up to 300 s (`maxDuration = 300`), which needs a Pro plan; on Hobby (60 s) the browser's EventSource reconnects and the stream replays the latest state, so long recordings still finish.
-7. **Preview deployments** are created for every pull request automatically (product spec §9). They share the production Redis/Postgres unless you give the Preview environment its own `DATABASE_URL`/`REDIS_URL`.
+7. **Function duration**: `/api/jobs/[id]/events` streams for up to 300 s (`maxDuration = 300`). If your plan allows less, the browser's EventSource reconnects and the stream replays the latest state, so long recordings still finish.
+8. **Preview deployments** are created for every pull request (product spec §9). They share the production Redis unless you give the Preview environment its own `REDIS_URL`.
+
+Image mode (paste, style, download, copy) works as soon as the first deploy is live, even before Redis, R2 or the worker exist.
+
+---
+
+## 3. Railway (worker)
+
+1. [railway.com](https://railway.com) → **New Project** → **Deploy from GitHub repo** → pick this repository. Rename the service `worker`.
+2. `worker` service → **Settings**:
+   - **Source → Root Directory**: leave empty (the Dockerfile needs the whole monorepo).
+   - **Config-as-code → Railway config file**: `apps/worker/railway.json` (Dockerfile build, start command, restart policy).
+   - **Networking**: no public domain; the worker only talks to Redis and R2.
+   - **Resources**: start at 1 replica, 4 vCPU / 4 GB (one Chromium per job, up to 4 at once).
+3. `worker` service → **Variables**:
+
+   ```
+   REDIS_URL=<the same rediss:// URL Vercel uses>
+   R2_ACCOUNT_ID=<account id>
+   R2_ACCESS_KEY_ID=<access key id>
+   R2_SECRET_ACCESS_KEY=<secret access key>
+   R2_BUCKET=weshot
+   R2_PUBLIC_BASE_URL=https://cdn.weshot.app
+   WORKER_CONCURRENCY=4
+   CAPTURE_TIMEOUT_MS=30000
+   SENTRY_DSN=<optional, worker project DSN>
+   ```
+4. Deploy. The logs should end with `WeShot worker ready (concurrency 4)`.
+5. **Scaling (product spec §9)**: when the `capture` queue regularly has more than 20 waiting jobs, raise `numReplicas` in `apps/worker/railway.json` (or **Settings → Deploy → Replicas**). Check depth with `redis-cli -u $REDIS_URL LLEN bull:capture:wait`.
 
 ---
 
@@ -147,8 +143,7 @@ For urgent additions without a deploy, set `BLOCKLIST_EXTRA` on Vercel.
 ```bash
 pnpm install
 cp .env.example .env
-pnpm services:up      # Postgres + Redis in Docker
-pnpm db:migrate
+pnpm services:up      # Redis in Docker
 pnpm dev              # web on :3000 and the worker
 ```
 

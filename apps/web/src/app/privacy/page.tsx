@@ -51,7 +51,8 @@ export default function PrivacyPage() {
       <h2>Who processes data for us</h2>
       <ul>
         <li>Vercel (web hosting)</li>
-        <li>Railway (capture servers and databases)</li>
+        <li>Railway (capture servers)</li>
+        <li>Redis Cloud (job queue and share link records)</li>
         <li>Cloudflare (file storage, CDN and Turnstile)</li>
         <li>PostHog (anonymous usage counts)</li>
         <li>Sentry (error reports)</li>

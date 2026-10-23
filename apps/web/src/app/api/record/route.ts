@@ -1,8 +1,7 @@
-import { RECORD_QUEUE, acquireSlot, checkRateLimit, getQueue, getRedis, getStorage, releaseSlot } from '@weshot/server';
+import { RECORD_QUEUE, acquireSlot, checkRateLimit, getQueue, getRedis, getStorage, jobRecords, releaseSlot } from '@weshot/server';
 import { LIMITS, normalizeUrl, recordRequestSchema } from '@weshot/shared';
 import { NextResponse } from 'next/server';
 import { isBlockedDomain } from '@/lib/server/blocklist';
-import { db } from '@/lib/server/db';
 import { mockEnqueue } from '@/lib/server/mock-worker';
 import { apiError, clientIp, ipHashOf, isMockWorker } from '@/lib/server/request';
 import { verifyTurnstile } from '@/lib/server/turnstile';
@@ -38,7 +37,7 @@ export async function POST(req: Request) {
   if (!(await acquireSlot(redis, ipHash, LIMITS.concurrentJobsPerIp))) return apiError('RATE_LIMIT', 429, { minutes: 1 });
 
   try {
-    const job = await db.job.create({ data: { kind: 'RECORD', status: 'queued', url, ipHash } });
+    const job = await jobRecords.create(redis, { kind: 'RECORD', status: 'queued', url, ipHash });
     await getQueue(RECORD_QUEUE).add(
       'record',
       { jobId: job.id, ipHash, capture: { ...capture, url }, record, templatePngKey, contentRect, contentRadius: contentRadius ?? 0, output },

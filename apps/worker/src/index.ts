@@ -1,7 +1,6 @@
 import { CAPTURE_QUEUE, RECORD_QUEUE, createRedis } from '@weshot/server';
 import { Worker } from 'bullmq';
 import { getBlocker } from './adblock';
-import { db } from './db';
 import { initMonitoring } from './monitoring';
 import { runCaptureJob } from './jobs/capture-job';
 import { runRecordJob } from './jobs/record-job';
@@ -32,7 +31,6 @@ console.log(`WeShot worker ready (concurrency ${concurrency})`);
 async function shutdown() {
   console.log('Shutting down worker');
   await Promise.allSettled([captureWorker.close(), recordWorker.close()]);
-  await db.$disconnect();
   process.exit(0);
 }
 process.on('SIGTERM', shutdown);

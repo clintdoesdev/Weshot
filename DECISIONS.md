@@ -96,3 +96,10 @@ Choices made where `WESHOT_PRODUCT_SPEC.md` and `WESHOT_UI_SPEC.md` are silent. 
 - **Prisma** binary targets include `rhel-openssl-3.0.x` for Vercel. `next.config.ts` sets `outputFileTracingRoot` to the repo root and keeps BullMQ, ioredis, Prisma and the AWS SDK as external server packages. These are also direct web dependencies, so pnpm can resolve them from `apps/web`.
 - **Worker image** runs as the Playwright image's unprivileged `pwuser`, uses Ubuntu's FFmpeg (`FFMPEG_PATH=/usr/bin/ffmpeg`), and runs `pnpm db:deploy` as Railway's pre-deploy step. Chromium runs with Playwright's default `--no-sandbox`; the container is the isolation boundary.
 - **Legal pages** are written plainly for Nova Pixel Studios with contact addresses `hello@`, `abuse@` and `privacy@weshot.app`. They need a lawyer's review before launch.
+
+## Redis instead of Postgres (after launch prep)
+
+- **Owner's call: Redis is the only datastore.** Postgres and Prisma are gone. Job and share records (same fields as product spec §4.8) live in Redis hashes (`packages/server/src/records.ts`). Job records expire after 30 days through a TTL. Share records expire at `expiresAt` through `EXPIREAT`. A sorted set by expiry time lets the daily cron delete expired share files from R2 right away (R2's 30-day lifecycle rule remains the safety net). That leaves one fewer service to run and pay for, since BullMQ needs Redis anyway.
+- Job ids are UUIDs (`crypto.randomUUID`) instead of cuids.
+- Redis must use `maxmemory-policy noeviction` (BullMQ requirement, and records must not be evicted). Local `docker-compose.yml` sets it; DEPLOY.md says where to set it on Redis Cloud.
+- The Phase 1 notes about Prisma, the Prisma schema, migrations and `DATABASE_URL` no longer apply.

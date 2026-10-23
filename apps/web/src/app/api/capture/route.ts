@@ -1,9 +1,8 @@
 import { randomUUID } from 'node:crypto';
-import { CAPTURE_QUEUE, acquireSlot, checkRateLimit, getQueue, getRedis, releaseSlot } from '@weshot/server';
+import { CAPTURE_QUEUE, acquireSlot, checkRateLimit, getQueue, getRedis, jobRecords, releaseSlot } from '@weshot/server';
 import { LIMITS, captureRequestSchema, normalizeUrl } from '@weshot/shared';
 import { NextResponse } from 'next/server';
 import { isBlockedDomain } from '@/lib/server/blocklist';
-import { db } from '@/lib/server/db';
 import { mockEnqueue } from '@/lib/server/mock-worker';
 import { apiError, clientIp, ipHashOf, isMockWorker } from '@/lib/server/request';
 import { verifyTurnstile } from '@/lib/server/turnstile';
@@ -38,7 +37,7 @@ export async function POST(req: Request) {
   if (!(await acquireSlot(redis, ipHash, LIMITS.concurrentJobsPerIp))) return apiError('RATE_LIMIT', 429, { minutes: 1 });
 
   try {
-    const job = await db.job.create({ data: { kind: 'CAPTURE', status: 'queued', url, ipHash } });
+    const job = await jobRecords.create(redis, { kind: 'CAPTURE', status: 'queued', url, ipHash });
     await getQueue(CAPTURE_QUEUE).add('capture', { jobId: job.id, ipHash, capture: { ...capture, url } }, { jobId: job.id });
     return NextResponse.json({ jobId: job.id });
   } catch (err) {
