@@ -1,9 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { dropImage, EMOJI, pasteImage } from './helpers';
+import { EMOJI, dropImage, openHome, pasteImage } from './helpers';
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/');
+  await openHome(page);
   await expect(page.getByRole('img', { name: /Framed sample page queuely\.app on Honey background/ })).toBeVisible();
 });
 

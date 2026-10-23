@@ -42,8 +42,11 @@ export function PasteBar({ variant = 'hero', inputId = 'ws-paste-input', caption
 
   return (
     <div className={cx('flex w-full flex-col items-center', className)}>
+      {/* Works before hydration too: a native submit goes to /?url=… and EditorRoot frames it on load. */}
       <form
         role="search"
+        action="/"
+        method="get"
         aria-label="Frame a link or an image"
         onSubmit={(e) => {
           e.preventDefault();
@@ -58,6 +61,7 @@ export function PasteBar({ variant = 'hero', inputId = 'ws-paste-input', caption
         <Link2 size={22} strokeWidth={1.75} className="shrink-0 text-ws-text-2" aria-hidden="true" />
         <input
           id={inputId}
+          name="url"
           type="text"
           inputMode="url"
           autoComplete="url"

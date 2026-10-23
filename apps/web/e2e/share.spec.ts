@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { pasteImage } from './helpers';
+import { openHome, pasteImage } from './helpers';
 
 /** Share links (product spec §2.1, §4.5; UI spec §4 "Share created"). */
 test('create a share link, open it, check OG + noindex, then delete it', async ({ page }) => {
-  await page.goto('/');
+  await openHome(page);
   await pasteImage(page, 1200, 800, '#22aa66');
   await expect(page.getByRole('img', { name: /pasted screenshot/ })).toBeVisible();
 

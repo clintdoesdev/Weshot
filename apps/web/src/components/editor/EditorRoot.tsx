@@ -39,10 +39,22 @@ export function EditorRoot() {
       history.pushState({ weshotEditor: true }, '', '#editor');
       useEditor.getState().setMobileEditorOpen(true);
     }
+    // A paste-bar submit that happened before hydration arrives as /?url=…
+    const pending = new URLSearchParams(location.search).get('url');
+    if (pending) {
+      history.replaceState(null, '', location.pathname + location.hash);
+      useEditor.getState().setBarValue(pending);
+      void import('@/lib/actions').then((a) => a.submitBar(pending));
+    }
     if (process.env.NEXT_PUBLIC_E2E === '1') void import('@/lib/test-hooks').then((m) => m.installTestHooks());
     startAnalytics();
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    // Page-wide paste and drop are live from here on; e2e tests wait for this marker.
+    if (mounted) document.documentElement.dataset.weshotReady = '1';
+  }, [mounted]);
 
   return (
     <>

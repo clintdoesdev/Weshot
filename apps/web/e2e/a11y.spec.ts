@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { pasteImage } from './helpers';
+import { openHome, pasteImage } from './helpers';
 
 /** UI spec §8: WCAG 2.2 AA, checked with axe on every main state. */
 async function audit(page: Page, include?: string) {
@@ -12,13 +12,13 @@ async function audit(page: Page, include?: string) {
 }
 
 test('landing page and editor (first visit)', async ({ page }) => {
-  await page.goto('/');
+  await openHome(page);
   await expect(page.getByRole('img', { name: /^Framed sample page queuely/ })).toBeVisible();
   await audit(page);
 });
 
 test('image mode, menus and dialogs', async ({ page }) => {
-  await page.goto('/');
+  await openHome(page);
   await pasteImage(page);
   await expect(page.getByRole('img', { name: /pasted screenshot/ })).toBeVisible();
   await audit(page);
@@ -31,7 +31,7 @@ test('image mode, menus and dialogs', async ({ page }) => {
 });
 
 test('error state', async ({ page }) => {
-  await page.goto('/');
+  await openHome(page);
   await page.locator('#ws-paste-input').fill('timeout.test');
   await page.locator('#ws-paste-input').press('Enter');
   await expect(page.locator('#ws-paste-input-help').getByText(/longer than 30 seconds/)).toBeVisible({ timeout: 10_000 });
@@ -39,7 +39,7 @@ test('error state', async ({ page }) => {
 });
 
 test('recording layout', async ({ page }) => {
-  await page.goto('/');
+  await openHome(page);
   await page.locator('#ws-paste-input').fill('mock-site.test');
   await page.locator('#ws-paste-input').press('Enter');
   await expect(page.getByRole('img', { name: /screenshot of mock-site/ })).toBeVisible({ timeout: 10_000 });
@@ -55,7 +55,7 @@ test('terms and privacy', async ({ page }) => {
 });
 
 test('keyboard: every editor control is reachable and shows the yellow focus ring', async ({ page }) => {
-  await page.goto('/');
+  await openHome(page);
   await page.getByRole('tab', { name: 'Background' }).focus();
   await page.keyboard.press('ArrowRight');
   await expect(page.getByRole('tab', { name: 'Layout' })).toBeFocused();
@@ -68,7 +68,7 @@ test('keyboard: every editor control is reachable and shows the yellow focus rin
 
 test('reduced motion: no animations', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/');
+  await openHome(page);
   await pasteImage(page);
   const durations = await page.evaluate(() =>
     Array.from(document.querySelectorAll('.ws-frame-in, .ws-shimmer, .ws-pulse')).map((el) => parseFloat(getComputedStyle(el).animationDuration)),

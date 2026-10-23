@@ -1,9 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
-import { pasteImage } from './helpers';
+import { openHome, pasteImage } from './helpers';
 
 /** Recording flow against the mocked worker (product spec §3.3, UI spec §3.2, §4). */
 async function captureLink(page: Page) {
-  await page.goto('/');
+  await openHome(page);
   await page.locator('#ws-paste-input').fill('mock-site.test');
   await page.locator('#ws-paste-input').press('Enter');
   await expect(page.getByRole('img', { name: /screenshot of mock-site\.test/ })).toBeVisible({ timeout: 10_000 });
@@ -48,7 +48,7 @@ test('GIF caps the length at 15 s and locks the frame rate', async ({ page }) =>
 });
 
 test('recording is link-only', async ({ page }) => {
-  await page.goto('/');
+  await openHome(page);
   await pasteImage(page);
   await page.getByRole('tab', { name: 'Record' }).click();
   const aside = page.getByRole('complementary', { name: 'Editor controls' });

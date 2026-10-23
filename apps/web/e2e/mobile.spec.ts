@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
-import { pasteImage } from './helpers';
+import { openHome, pasteImage } from './helpers';
 
 test('mobile: Frame it opens the editor with the bottom sheet and download sheet', async ({ page }) => {
-  await page.goto('/');
+  await openHome(page);
   await expect(page.getByText('Free, no account. Or')).toBeVisible();
   await page.getByRole('button', { name: 'Open the editor' }).click();
   const editor = page.getByRole('region', { name: 'Editor' });
@@ -20,7 +20,7 @@ test('mobile: Frame it opens the editor with the bottom sheet and download sheet
 });
 
 test('mobile: pasting an image opens the editor', async ({ page }) => {
-  await page.goto('/');
+  await openHome(page);
   await pasteImage(page);
   await expect(page.getByRole('region', { name: 'Editor' }).getByRole('img', { name: /pasted screenshot/ })).toBeVisible();
 });

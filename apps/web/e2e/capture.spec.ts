@@ -1,8 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
+import { openHome } from './helpers';
 
 /** Link flow against the mocked worker (product spec §3.1, §6; UI spec §4). */
 test.beforeEach(async ({ page }) => {
-  await page.goto('/');
+  await openHome(page);
 });
 
 const bar = (page: Page) => page.locator('#ws-paste-input');
@@ -80,4 +81,10 @@ test('rate limit copy appears under the bar', async ({ page }) => {
   await bar(page).fill('ratelimit.test');
   await bar(page).press('Enter');
   await expect(page.locator('#ws-paste-input-help').getByText("You've made a lot of captures this hour. Try again in 42 min.")).toBeVisible();
+});
+
+test('a submit before hydration still frames the link (no-JS form fallback)', async ({ page }) => {
+  await page.goto('/?url=mock-site.test');
+  await expect(page.getByRole('img', { name: /screenshot of mock-site\.test/ })).toBeVisible({ timeout: 10_000 });
+  expect(new URL(page.url()).search).toBe('');
 });

@@ -1,4 +1,10 @@
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+
+/** Open a page and wait until page-wide paste/drop and the editor are live (hydrated). */
+export async function openHome(page: Page, path = '/') {
+  await page.goto(path);
+  await expect(page.locator('html[data-weshot-ready]')).toHaveCount(1);
+}
 
 /** Dispatch a paste of a generated PNG at the document level, like Cmd+V with an image on the clipboard. */
 export async function pasteImage(page: Page, width = 1200, height = 800, color = '#3355FF') {
