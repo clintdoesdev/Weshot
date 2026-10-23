@@ -1,0 +1,52 @@
+{
+  "name": "weshot",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter @weshot/web --filter @weshot/worker dev",
+    "dev:web": "pnpm --filter @weshot/web dev",
+    "dev:worker": "pnpm --filter @weshot/worker dev",
+    "build": "pnpm db:generate && pnpm -r build",
+    "test": "pnpm -r test",
+    "test:e2e": "pnpm --filter @weshot/web test:e2e",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "pnpm db:generate && pnpm -r typecheck",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "services:up": "docker compose up -d",
+    "services:down": "docker compose down"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@next/eslint-plugin-next": "15.5.6",
+    "@types/node": "^22.10.0",
+    "eslint": "^9.39.0",
+    "globals": "^16.0.0",
+    "prisma": "6.19.3",
+    "typescript": "5.9.3",
+    "typescript-eslint": "^8.46.0"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "esbuild",
+      "sharp",
+      "@napi-rs/canvas",
+      "unrs-resolver",
+      "msgpackr-extract",
+      "ffmpeg-static"
+    ]
+  }
+}

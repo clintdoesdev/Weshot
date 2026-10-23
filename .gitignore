@@ -1,0 +1,14 @@
+node_modules
+.next
+dist
+coverage
+.env
+.env.local
+.data
+*.tsbuildinfo
+test-results
+playwright-report
+packages/frame/test/__diff__
+apps/web/src/fonts/givonic/generated.ts
+.turbo
+.vercel
