@@ -48,6 +48,12 @@ export type Toast = { id: number; message: string; action?: { label: string; run
 
 export type VideoResult = { url: string; format: VideoFormat; width: number; height: number };
 
+export type ShareDialogState =
+  | { kind: 'closed' }
+  | { kind: 'working' }
+  | { kind: 'ready'; id: string; url: string }
+  | { kind: 'error'; message: string };
+
 export type RecordingState =
   | { kind: 'idle' }
   | { kind: 'recording'; elapsedSec: number; totalSec: number; progress: number; status: string }
@@ -78,6 +84,7 @@ type State = {
   shortcutsOpen: boolean;
   video: VideoResult | null;
   recording: RecordingState;
+  share: ShareDialogState;
 };
 
 type Actions = {
@@ -104,6 +111,7 @@ type Actions = {
   setVideo: (v: VideoResult | null) => void;
   setRecording: (r: RecordingState) => void;
   setCapturedWith: (c: CaptureOptions | null) => void;
+  setShare: (s: ShareDialogState) => void;
 };
 
 let toastId = 0;
@@ -129,6 +137,7 @@ export const useEditor = create<State & Actions>()((set) => ({
   shortcutsOpen: false,
   video: null,
   recording: { kind: 'idle' },
+  share: { kind: 'closed' },
 
   setFrame: (patch) => set((s) => ({ frame: { ...s.frame, ...patch } })),
   setWindow: (patch) => set((s) => ({ frame: { ...s.frame, window: { ...s.frame.window, ...patch } } })),
@@ -161,6 +170,7 @@ export const useEditor = create<State & Actions>()((set) => ({
   setVideo: (video) => set({ video }),
   setRecording: (recording) => set({ recording }),
   setCapturedWith: (capturedWith) => set({ capturedWith }),
+  setShare: (share) => set({ share }),
 }));
 
 /** Link-only controls are disabled for pasted images (product spec §3.2). */

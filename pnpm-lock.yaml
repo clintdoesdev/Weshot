@@ -39,6 +39,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@next/env':
+        specifier: 15.5.6
+        version: 15.5.6
       '@prisma/client':
         specifier: 6.19.3
         version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)

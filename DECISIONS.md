@@ -75,3 +75,14 @@ Choices made where `WESHOT_PRODUCT_SPEC.md` and `WESHOT_UI_SPEC.md` are silent. 
 - **WebM** uses `libvpx-vp9 -crf 32 -b:v 0` as specified, plus `-row-mt 1 -deadline good -cpu-used 5` for reasonable encode times.
 - **Uploads** (`/api/uploads`) are limited to 60 per hour per hashed IP. Templates must be PNG and at most 8 MB, checked again when `/api/record` is called. Templates are deleted once the recording finishes.
 - **Status pill labels**: "Loading page", "Recording" and "Encoding", with time in Geist Mono ("7.2 s / 12 s").
+
+## Phase 6 — share links
+
+- **What is shared.** The current image export (selected format and scale), or the recorded video when a video format is selected and a video is ready. Files go straight from the browser to storage through a presigned PUT. `/api/share` then checks the object exists and is at most 50 MB, and deletes it if it is larger.
+- **Ids and tokens.** Ids are 10 characters from `[0-9A-Za-z]` via `crypto.randomBytes` with rejection sampling (no nanoid dependency). Delete tokens are 24 random bytes in base64url. Only `sha256(token)` is stored, and it is compared in constant time. A wrong token and a missing share both return 404, so ids cannot be probed.
+- **Share limits**: 20 per hour, 100 per day per hashed IP.
+- **Viewer page** `/s/[id]`: the framed image (or an auto-playing, muted, looping video), "Expires {date}", "Report this page" (mailto `abuse@weshot.app`), and "Delete" only in the browser that holds the token. Also a "Frame your own" pill linking home. `noindex, nofollow`, and robots.txt disallows `/s/`. Expired or deleted links show "This link has expired".
+- **Open Graph for videos.** MP4 and WebM shares carry `og:video` tags with the site's OG image as the preview picture, since the data model has no poster field. GIF and image shares use the file itself as `og:image`.
+- **Expiry cron** is `GET /api/cron/expire`, scheduled daily at 03:17 UTC in `apps/web/vercel.json`. It requires `Authorization: Bearer $CRON_SECRET`, which Vercel Cron sends automatically. It deletes expired shares and their files, and Job rows older than 30 days. R2 lifecycle rules back this up (see DEPLOY.md).
+- **Repo-root `.env`.** `next.config.ts` loads it via `@next/env`, so web, worker and Prisma share one file. `.env.example` uses `http://localhost:3000` for `NEXT_PUBLIC_SITE_URL` locally; production uses `https://weshot.app`.
+- **Copy the specs leave open**: "Creating your link", "Link copied", "Share link deleted", "That file is over 50 MB. Try a smaller size.", "This link has expired", "Share links last 30 days, or until the person who made them deletes them."

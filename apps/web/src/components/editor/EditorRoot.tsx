@@ -9,6 +9,7 @@ import { PageInput } from '../landing/PageInput';
 import { DownloadSheet } from '../mobile/DownloadSheet';
 import { MobileEditor } from '../mobile/MobileEditor';
 import { Editor } from './Editor';
+import { ShareDialog } from './ShareDialog';
 import { ShortcutsDialog } from './ShortcutsDialog';
 import { Toast } from './Toast';
 import { useBackgroundImage } from './useEditorEffects';
@@ -40,6 +41,7 @@ export function EditorRoot() {
               <MobileEditor />
               <DownloadSheet />
               <ShortcutsDialog />
+              <ShareDialog />
               <Toast />
             </>,
             document.body,

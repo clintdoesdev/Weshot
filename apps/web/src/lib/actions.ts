@@ -62,7 +62,8 @@ async function currentBitmap(): Promise<ImageBitmap | null> {
   return source.bitmap;
 }
 
-async function renderCurrent(format: ImageFormat, scale: number) {
+/** Render the current frame as it would be downloaded. */
+export async function renderCurrentImage(format: ImageFormat, scale: number) {
   const s = get();
   const source = await currentBitmap();
   return renderExport({
@@ -78,7 +79,7 @@ async function renderCurrent(format: ImageFormat, scale: number) {
 export async function downloadImage(format: ImageFormat = imageFormat(), scale: number = get().exportScale): Promise<void> {
   const s = get();
   try {
-    const out = await renderCurrent(format, scale);
+    const out = await renderCurrentImage(format, scale);
     saveBlob(out.blob, exportFilename(sourceUrl(s.source) ?? (s.source.kind === 'image' ? s.source.name.replace(/\.\w+$/, '') : null), out.width, out.height, format));
     if (out.scale < scale) s.showToast(`Exported at ${out.scale}x, the largest size this browser can make.`);
   } catch {
@@ -95,7 +96,7 @@ function imageFormat(): ImageFormat {
 export async function copyImage(): Promise<void> {
   const s = get();
   try {
-    const blobPromise = renderCurrent('png', s.exportScale).then((r) => r.blob);
+    const blobPromise = renderCurrentImage('png', s.exportScale).then((r) => r.blob);
     // Safari needs the ClipboardItem created synchronously inside the gesture, with a promise.
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blobPromise })]);
     s.showToast('Image copied');

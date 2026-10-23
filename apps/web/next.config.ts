@@ -1,4 +1,8 @@
+import { loadEnvConfig } from '@next/env';
 import type { NextConfig } from 'next';
+
+// One .env at the repo root serves web, worker and Prisma.
+loadEnvConfig(new URL('../..', import.meta.url).pathname);
 
 const config: NextConfig = {
   reactStrictMode: true,
