@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: 'true'
+  # Turnstile test keys (always pass); no real secrets are needed in CI.
+  TURNSTILE_SITE_KEY: 1x00000000000000000000AA
+  TURNSTILE_SECRET_KEY: 1x0000000000000000000000000000000AA
+  ADBLOCK_DISABLED: '1'
+
+jobs:
+  checks:
+    name: Lint, typecheck, unit and snapshot tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    services:
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      REDIS_URL: redis://localhost:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:generate
+      - run: pnpm lint
+      - run: pnpm typecheck
+      # Chromium for the worker's SSRF and recording tests (real browser through the SSRF proxy).
+      - run: pnpm --filter @weshot/worker exec playwright install --with-deps chromium
+      - name: Unit, compositor snapshot, SSRF and recording tests
+        run: pnpm test
+      - name: Upload snapshot diffs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: snapshot-diffs
+          path: packages/frame/test/__diff__
+          if-no-files-found: ignore
+
+  e2e:
+    name: Playwright e2e (mocked worker)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:generate
+      - run: pnpm --filter @weshot/web exec playwright install --with-deps chromium
+      - name: e2e (desktop + mobile, axe accessibility)
+        run: pnpm test:e2e
+        env:
+          NEXT_PUBLIC_E2E: '1'
+          E2E_MOCK_WORKER: '1'
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            apps/web/playwright-report
+            apps/web/test-results
+          if-no-files-found: ignore
+
+  worker-image:
+    name: Worker Docker image builds
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/worker/Dockerfile
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -1,17 +1,15 @@
 'use client';
 
 import { create } from 'zustand';
-import {
-  DEFAULT_CAPTURE,
-  DEFAULT_FRAME,
-  DEFAULT_RECORD,
-  type BackgroundSetting,
-  type CaptureSettings,
-  type ExportScale,
-  type FrameSettings,
-  type ImageFormat,
-  type RecordSettings,
-  type VideoFormat,
+import { DEFAULT_CAPTURE, DEFAULT_FRAME, DEFAULT_RECORD } from '@weshot/shared/presets';
+import type {
+  BackgroundSetting,
+  CaptureSettings,
+  ExportScale,
+  FrameSettings,
+  ImageFormat,
+  RecordSettings,
+  VideoFormat,
 } from '@weshot/shared';
 
 export const EDITOR_TABS = [

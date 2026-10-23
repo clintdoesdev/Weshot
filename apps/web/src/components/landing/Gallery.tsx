@@ -1,8 +1,8 @@
 'use client';
 
-import { GALLERY_EXAMPLES } from '@weshot/shared';
+import { GALLERY_EXAMPLES } from '@weshot/shared/presets';
 import Image from 'next/image';
-import { revealEditor } from '@/lib/actions';
+import { editorActions } from '@/lib/lazy-actions';
 import { useEditor } from '@/lib/store';
 
 /** UI spec §3.1 item 4 / §3.3: each example is a preset; clicking loads it into the editor. */
@@ -25,7 +25,7 @@ export function Gallery() {
               type="button"
               onClick={() => {
                 applyFrame(ex.frame);
-                revealEditor();
+                void editorActions().then((a) => a.revealEditor());
               }}
               className="glass-tile block w-full rounded-[24px] p-2.5 text-left"
             >

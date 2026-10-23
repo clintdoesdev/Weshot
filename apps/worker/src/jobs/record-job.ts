@@ -3,6 +3,7 @@ import type { Job } from 'bullmq';
 import type { CaptureDeps } from '../capture';
 import { updateJob } from '../db';
 import { CaptureError } from '../errors';
+import { reportError } from '../monitoring';
 import { recordPage } from '../record/recorder';
 
 /** Recording worker (product spec §4.7). Uploads to recordings/{date}/{jobId}.{ext}. */
@@ -35,7 +36,10 @@ export async function runRecordJob(job: Job<RecordJobData>, deps: CaptureDeps = 
     await updateJob(jobId, { status: 'done', assetKey: key, durationMs: Date.now() - started });
   } catch (err) {
     const e = err instanceof CaptureError ? err : new CaptureError('INTERNAL');
-    if (!(err instanceof CaptureError)) console.error(`[record] ${jobId}`, err);
+    if (!(err instanceof CaptureError)) {
+      console.error(`[record] ${jobId}`, err);
+      reportError(err, { job: 'record', jobId });
+    }
     await emit({ type: 'error', code: e.code, message: e.message, ...(e.status !== undefined ? { status: e.status } : {}) });
     await emit({ type: 'status', status: 'failed' });
     await updateJob(jobId, { status: 'failed', errorCode: e.code, durationMs: Date.now() - started });

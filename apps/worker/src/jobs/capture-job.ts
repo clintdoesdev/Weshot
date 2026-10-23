@@ -3,6 +3,7 @@ import type { Job } from 'bullmq';
 import { capturePage, type CaptureDeps } from '../capture';
 import { updateJob } from '../db';
 import { CaptureError } from '../errors';
+import { reportError } from '../monitoring';
 
 /** Capture worker (product spec §4.6): load, screenshot, upload to R2, emit progress over Redis. */
 export async function runCaptureJob(job: Job<CaptureJobData>, deps: CaptureDeps = {}): Promise<void> {
@@ -33,7 +34,10 @@ export async function runCaptureJob(job: Job<CaptureJobData>, deps: CaptureDeps 
     await updateJob(jobId, { status: 'done', assetKey: key, durationMs: Date.now() - started });
   } catch (err) {
     const e = err instanceof CaptureError ? err : new CaptureError('INTERNAL');
-    if (!(err instanceof CaptureError)) console.error(`[capture] ${jobId}`, err);
+    if (!(err instanceof CaptureError)) {
+      console.error(`[capture] ${jobId}`, err);
+      reportError(err, { job: 'capture', jobId });
+    }
     await emit({ type: 'error', code: e.code, message: e.message, ...(e.status !== undefined ? { status: e.status } : {}) });
     await emit({ type: 'status', status: 'failed' });
     await updateJob(jobId, { status: 'failed', errorCode: e.code, durationMs: Date.now() - started });

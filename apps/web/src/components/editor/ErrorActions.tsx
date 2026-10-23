@@ -1,7 +1,6 @@
 'use client';
 
-import { ERROR_ACTIONS, isErrorCode } from '@weshot/shared';
-import { retryCapture } from '@/lib/capture';
+import { ERROR_ACTIONS, isErrorCode } from '@weshot/shared/errors';
 import { cx } from '../ui/cx';
 
 /** Action buttons for an error (product spec §6). */
@@ -13,7 +12,7 @@ export function ErrorActions({ code, className }: { code: string; className?: st
     <span className={cx('inline-flex flex-wrap gap-2', className)}>
       {actions.map((a) =>
         a === 'retry' ? (
-          <button key={a} type="button" className="btn-secondary h-11 rounded-pill px-4 text-[14px]" onClick={() => void retryCapture()}>
+          <button key={a} type="button" className="btn-secondary h-11 rounded-pill px-4 text-[14px]" onClick={() => void import('@/lib/capture').then((m) => m.retryCapture())}>
             Retry
           </button>
         ) : a === 'paste-screenshot' ? (

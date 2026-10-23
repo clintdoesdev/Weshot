@@ -75,3 +75,9 @@ test('blocklisted domains are refused before capture', async ({ page }) => {
   await bar(page).press('Enter');
   await expect(page.locator('#ws-paste-input-help').getByText("WeShot can't open this site.")).toBeVisible();
 });
+
+test('rate limit copy appears under the bar', async ({ page }) => {
+  await bar(page).fill('ratelimit.test');
+  await bar(page).press('Enter');
+  await expect(page.locator('#ws-paste-input-help').getByText("You've made a lot of captures this hour. Try again in 42 min.")).toBeVisible();
+});

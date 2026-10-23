@@ -22,6 +22,8 @@ export async function POST(req: Request) {
   if (isBlockedDomain(host)) return apiError('BLOCKED_SITE', 403);
 
   if (isMockWorker()) {
+    // e2e: "ratelimit.test" shows the rate-limit copy under the bar.
+    if (host === 'ratelimit.test') return apiError('RATE_LIMIT', 429, { minutes: 42 });
     const jobId = randomUUID();
     mockEnqueue(jobId, 'capture', url);
     return NextResponse.json({ jobId });

@@ -1,4 +1,4 @@
-import { LIMITS } from '@weshot/shared';
+import { LIMITS } from '@weshot/shared/constants';
 
 export class ImageTooLargeError extends Error {
   constructor() {

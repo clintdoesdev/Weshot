@@ -2,8 +2,11 @@ import { CAPTURE_QUEUE, RECORD_QUEUE, createRedis } from '@weshot/server';
 import { Worker } from 'bullmq';
 import { getBlocker } from './adblock';
 import { db } from './db';
+import { initMonitoring } from './monitoring';
 import { runCaptureJob } from './jobs/capture-job';
 import { runRecordJob } from './jobs/record-job';
+
+initMonitoring();
 
 const concurrency = Number(process.env.WORKER_CONCURRENCY) || 4;
 

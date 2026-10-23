@@ -152,3 +152,18 @@ export type JobEvent =
   | { type: 'progress'; progress: number; elapsedSec?: number; totalSec?: number }
   | { type: 'result'; assetUrl: string; width?: number; height?: number; title?: string; truncated?: boolean }
   | { type: 'error'; code: string; message: string; status?: number };
+
+// ---------- user presets: localStorage + JSON import/export ----------
+
+export const userPresetSchema = z.object({
+  id: z.string().min(1).max(64),
+  name: z.string().min(1).max(60),
+  frame: frameSettingsSchema,
+});
+
+export const presetFileSchema = z.object({
+  app: z.literal('weshot'),
+  version: z.literal(1),
+  presets: z.array(userPresetSchema).max(100),
+});
+export type PresetFile = z.infer<typeof presetFileSchema>;

@@ -1,6 +1,4 @@
-import { z } from 'zod';
 import type { CaptureSettings, FrameSettings, RecordSettings } from './schemas';
-import { frameSettingsSchema } from './schemas';
 
 export type FramePreset = { id: string; name: string; frame: FrameSettings };
 
@@ -106,18 +104,3 @@ export const DEFAULT_RECORD: RecordSettings = {
   fps: 30,
   format: 'mp4',
 };
-
-// ---------- user presets: localStorage + JSON import/export ----------
-
-export const userPresetSchema = z.object({
-  id: z.string().min(1).max(64),
-  name: z.string().min(1).max(60),
-  frame: frameSettingsSchema,
-});
-
-export const presetFileSchema = z.object({
-  app: z.literal('weshot'),
-  version: z.literal(1),
-  presets: z.array(userPresetSchema).max(100),
-});
-export type PresetFile = z.infer<typeof presetFileSchema>;

@@ -3,6 +3,7 @@
 import { errorMessage, type CaptureSettings, type JobEvent } from '@weshot/shared';
 import { useEditor, type CaptureStep } from './store';
 import { getTurnstileToken } from './turnstile';
+import { track } from './analytics';
 
 const STEP: Partial<Record<string, CaptureStep>> = { queued: 'loading', loading: 'loading', fonts: 'fonts', capturing: 'framing' };
 
@@ -76,6 +77,7 @@ export async function startCapture(url: string): Promise<void> {
   const fail = (code: string, message: string) => {
     if (run.cancelled) return;
     useEditor.getState().setPhase({ kind: 'error', code, message });
+    track('capture_failed', { code });
   };
 
   let token: string;
@@ -104,6 +106,7 @@ export async function startCapture(url: string): Promise<void> {
     st.setSource({ kind: 'url', url, bitmap, title: result.title ?? null, truncated: !!result.truncated });
     st.setCapturedWith(withoutUrl(capture));
     st.setPhase({ kind: 'idle' });
+    track('capture_succeeded');
     if (result.truncated) st.showToast('This page is taller than 16,000 px, so the capture stops there.');
   } catch (e) {
     const err = e as { code?: string; message?: string };

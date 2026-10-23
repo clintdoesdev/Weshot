@@ -1,8 +1,8 @@
 'use client';
 
-import { looksLikeUrl } from '@weshot/shared';
+import { looksLikeUrl } from '@weshot/shared/url';
 import { useEffect, useRef, useState } from 'react';
-import { loadImageFile, submitBar } from '@/lib/actions';
+import { editorActions } from '@/lib/lazy-actions';
 import { imageFromDataTransfer } from '@/lib/image';
 import { useEditor } from '@/lib/store';
 
@@ -26,7 +26,7 @@ export function PageInput() {
       if (file) {
         // Text fields cannot hold images, so an image pasted anywhere is framed.
         e.preventDefault();
-        void loadImageFile(file);
+        void editorActions().then((a) => a.loadImageFile(file));
         return;
       }
       if (isOtherField(e.target)) return;
@@ -34,7 +34,7 @@ export function PageInput() {
       if (looksLikeUrl(text)) {
         e.preventDefault();
         useEditor.getState().setBarValue(text.trim());
-        submitBar(text.trim());
+        void editorActions().then((a) => a.submitBar(text.trim()));
       }
     };
     const hasFiles = (e: DragEvent) => Array.from(e.dataTransfer?.types ?? []).includes('Files');
@@ -60,7 +60,7 @@ export function PageInput() {
       depth.current = 0;
       setDragging(false);
       const file = imageFromDataTransfer(e.dataTransfer);
-      if (file) void loadImageFile(file);
+      if (file) void editorActions().then((a) => a.loadImageFile(file));
     };
     document.addEventListener('paste', onPaste);
     window.addEventListener('dragenter', onEnter);
@@ -88,7 +88,7 @@ export function PageInput() {
         onChange={(e) => {
           const f = e.target.files?.[0];
           e.target.value = '';
-          if (f) void loadImageFile(f);
+          if (f) void editorActions().then((a) => a.loadImageFile(f));
         }}
       />
       {dragging ? (

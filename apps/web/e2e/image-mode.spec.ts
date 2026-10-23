@@ -125,3 +125,12 @@ test('keyboard shortcuts work on the editor region', async ({ page }) => {
   await page.keyboard.press('Shift+?');
   await expect(page.getByRole('dialog', { name: 'Keyboard shortcuts' })).toBeVisible();
 });
+
+test('images over 25 MB are refused with the spec copy', async ({ page }) => {
+  await page.evaluate(() => {
+    const dt = new DataTransfer();
+    dt.items.add(new File([new Uint8Array(26 * 1024 * 1024)], 'huge.png', { type: 'image/png' }));
+    document.body.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true }));
+  });
+  await expect(page.locator('#ws-paste-input-help').getByText('That image is over 25 MB.')).toBeVisible();
+});

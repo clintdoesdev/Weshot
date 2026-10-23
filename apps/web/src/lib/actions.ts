@@ -8,6 +8,7 @@ import { ImageTooLargeError, decodeImageFile } from './image';
 import { isMobileViewport, scrollToEditor } from './motion';
 import { sourceTitle, sourceUrl, useEditor } from './store';
 import { startCapture } from './capture';
+import { track } from './analytics';
 
 const get = () => useEditor.getState();
 
@@ -28,6 +29,7 @@ export async function loadImageFile(file: File): Promise<void> {
   try {
     const bitmap = await decodeImageFile(file);
     s.setSource({ kind: 'image', bitmap, name: file.name || 'screenshot' });
+    track('image_added');
     s.setPhase({ kind: 'idle' });
     s.setCapturedWith(null);
     s.setVideo(null);
@@ -53,6 +55,7 @@ export function submitBar(value: string): void {
   }
   s.setBarValue(url.replace(/\/$/, ''));
   revealEditor();
+  track('capture_started');
   void startCapture(url);
 }
 
@@ -80,6 +83,7 @@ export async function downloadImage(format: ImageFormat = imageFormat(), scale: 
   const s = get();
   try {
     const out = await renderCurrentImage(format, scale);
+    track('download', { kind: 'image', format, scale: out.scale });
     saveBlob(out.blob, exportFilename(sourceUrl(s.source) ?? (s.source.kind === 'image' ? s.source.name.replace(/\.\w+$/, '') : null), out.width, out.height, format));
     if (out.scale < scale) s.showToast(`Exported at ${out.scale}x, the largest size this browser can make.`);
   } catch {
@@ -100,6 +104,7 @@ export async function copyImage(): Promise<void> {
     // Safari needs the ClipboardItem created synchronously inside the gesture, with a promise.
     await navigator.clipboard.write([new ClipboardItem({ 'image/png': blobPromise })]);
     s.showToast('Image copied');
+    track('copy');
   } catch {
     s.showToast("Couldn't copy. Use Download instead.");
   }
@@ -110,6 +115,7 @@ export async function downloadCurrent(): Promise<void> {
   const s = get();
   const f = s.exportFormat;
   if ((f === 'mp4' || f === 'webm' || f === 'gif') && s.video) {
+    track('download', { kind: 'video', format: s.video.format });
     const res = await fetch(s.video.url);
     saveBlob(await res.blob(), exportFilename(sourceUrl(s.source), s.video.width, s.video.height, s.video.format));
     return;

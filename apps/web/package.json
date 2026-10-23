@@ -16,19 +16,26 @@
     "render:static": "tsx scripts/render-static.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "3.1156.0",
+    "@aws-sdk/s3-request-presigner": "3.1156.0",
     "@next/env": "15.5.6",
     "@prisma/client": "6.19.3",
+    "@sentry/nextjs": "11.8.0",
     "@weshot/frame": "workspace:*",
     "@weshot/server": "workspace:*",
     "@weshot/shared": "workspace:*",
+    "bullmq": "5.81.5",
+    "ioredis": "^5.11.1",
     "lucide-react": "^0.548.0",
     "next": "15.5.6",
+    "posthog-js": "1.438.19",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "zod": "3.25.76",
     "zustand": "5.0.8"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
     "@napi-rs/canvas": "1.0.13",
     "@next/eslint-plugin-next": "15.5.6",
     "@playwright/test": "1.56.1",

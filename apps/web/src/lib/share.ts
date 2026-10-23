@@ -6,6 +6,7 @@ import { isApiError, type ApiError } from './capture';
 import { rememberShare } from './share-store';
 import { useEditor } from './store';
 import { uploadFile } from './uploads';
+import { track } from './analytics';
 
 /**
  * Share link (product spec §2.1): the one moment a file leaves the browser. Uploads the current export
@@ -52,6 +53,7 @@ export async function openShare(): Promise<void> {
       return;
     }
     rememberShare(json);
+    track('share_created', { kind });
     useEditor.getState().setShare({ kind: 'ready', id: json.id, url: json.url });
   } catch (e) {
     useEditor.getState().setShare({ kind: 'error', message: (e as ApiError).message ?? errorMessage('INTERNAL') });

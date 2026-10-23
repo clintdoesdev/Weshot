@@ -8,6 +8,7 @@ import { renderExport } from './export';
 import { sourceTitle, sourceUrl, useEditor } from './store';
 import { getTurnstileToken } from './turnstile';
 import { uploadFile } from './uploads';
+import { track } from './analytics';
 
 const MAX_VIDEO_SIDE = 1920;
 let currentJob: string | null = null;
@@ -41,11 +42,13 @@ export async function startRecording(): Promise<void> {
   const total = record.lengthSec;
   s.setRecording({ kind: 'recording', elapsedSec: 0, totalSec: total, progress: 0, status: 'Loading page' });
   s.setVideo(null);
+  track('recording_started', { format: record.format, type: record.type, lengthSec: record.lengthSec });
 
   const fail = (message: string) => {
     currentJob = null;
     const st = useEditor.getState();
     st.setRecording({ kind: 'error', message });
+    track('recording_failed');
     st.showToast(message);
   };
 
@@ -108,6 +111,7 @@ export async function startRecording(): Promise<void> {
     st.setVideo({ url: result.assetUrl, format: record.format, width: result.width ?? out.width, height: result.height ?? out.height });
     st.setExportFormat(record.format);
     st.setRecording({ kind: 'idle' });
+    track('recording_done', { format: record.format });
     st.showToast('Video ready', { label: `Download ${record.format.toUpperCase()}`, run: () => void downloadCurrent() });
   } catch (e) {
     const err = e as { message?: string };

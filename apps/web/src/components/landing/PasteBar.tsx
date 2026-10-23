@@ -2,7 +2,9 @@
 
 import { Image as ImageIcon, Link2 } from 'lucide-react';
 import { useEditor } from '@/lib/store';
-import { submitBar } from '@/lib/actions';
+import { editorActions } from '@/lib/lazy-actions';
+import { errorMessage } from '@weshot/shared/errors';
+import { normalizeUrl } from '@weshot/shared/url';
 import { ErrorActions } from '../editor/ErrorActions';
 import { cx } from '../ui/cx';
 
@@ -29,8 +31,13 @@ export function PasteBar({ variant = 'hero', inputId = 'ws-paste-input', caption
       document.getElementById(inputId)?.focus();
       return;
     }
-    submitBar(value);
-    if (useEditor.getState().phase.kind === 'error') document.getElementById(inputId)?.focus();
+    // Validate here so the error shows without waiting for the editor code to load.
+    if (!normalizeUrl(value)) {
+      setPhase({ kind: 'error', code: 'INVALID_URL', message: errorMessage('INVALID_URL') });
+      document.getElementById(inputId)?.focus();
+      return;
+    }
+    void editorActions().then((a) => a.submitBar(value));
   };
 
   return (
