@@ -4,7 +4,7 @@
  *
  *   tsx test/smoke-worker.ts
  */
-import { CAPTURE_QUEUE, RECORD_QUEUE, createRedis } from '@weshot/server';
+import { CAPTURE_QUEUE, RECORD_QUEUE, beatWorker, createRedis, getRedis } from '@weshot/server';
 import { Worker } from 'bullmq';
 import { runCaptureJob } from '../src/jobs/capture-job';
 import { runRecordJob } from '../src/jobs/record-job';
@@ -14,4 +14,6 @@ const port = process.env.SMOKE_SITE_PORT ?? '';
 const deps = { resolver: testResolver(), allowed: testPolicy, adblock: false };
 new Worker(CAPTURE_QUEUE, (job) => runCaptureJob(job, deps), { connection: createRedis(), concurrency: 2 });
 new Worker(RECORD_QUEUE, (job) => runRecordJob(job, deps), { connection: createRedis(), concurrency: 1 });
+setInterval(() => void beatWorker(getRedis()), 10_000);
+void beatWorker(getRedis());
 console.log(`smoke worker ready (site port ${port})`);

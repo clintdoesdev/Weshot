@@ -28,18 +28,33 @@ export function isApiError<T>(x: T | ApiError): x is ApiError {
  * Follow a job's Server-Sent Events until it finishes. Resolves with the result event or rejects with the error.
  * EventSource reconnects on its own; the server replays the latest state on reconnect.
  */
-export function followJob(jobId: string, onEvent: (e: JobEvent) => void, handle: { es: EventSource | null }): Promise<Extract<JobEvent, { type: 'result' }>> {
+export function followJob(
+  jobId: string,
+  onEvent: (e: JobEvent) => void,
+  handle: { es: EventSource | null },
+  /** Give up when nothing arrives for this long (a worker that died mid-job). */
+  idleMs?: number,
+): Promise<Extract<JobEvent, { type: 'result' }>> {
   return new Promise((resolve, reject) => {
     const es = new EventSource(`/api/jobs/${encodeURIComponent(jobId)}/events`);
     handle.es = es;
     let result: Extract<JobEvent, { type: 'result' }> | null = null;
+    let idle: ReturnType<typeof setTimeout> | undefined;
+    const arm = () => {
+      if (!idleMs) return;
+      clearTimeout(idle);
+      idle = setTimeout(() => finish(() => reject({ type: 'error', code: 'CAPTURE_UNAVAILABLE', message: errorMessage('CAPTURE_UNAVAILABLE') })), idleMs);
+    };
+    arm();
     const finish = (fn: () => void) => {
+      clearTimeout(idle);
       es.close();
       fn();
     };
     const on = (type: JobEvent['type']) =>
       es.addEventListener(type, (m) => {
         const e = JSON.parse((m as MessageEvent<string>).data) as JobEvent;
+        if (!(e.type === 'status' && e.status === 'queued')) arm();
         onEvent(e);
         if (e.type === 'result') result = e;
         if (e.type === 'error') finish(() => reject(e));
@@ -98,6 +113,7 @@ export async function startCapture(url: string): Promise<void> {
         if (e.type === 'status' && STEP[e.status]) useEditor.getState().setPhase({ kind: 'capturing', step: STEP[e.status]! });
       },
       run,
+      90_000,
     );
     if (run.cancelled) return;
     const bitmap = await loadBitmap(result.assetUrl);

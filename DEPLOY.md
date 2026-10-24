@@ -112,7 +112,8 @@ Image mode (paste, style, download, copy) works as soon as the first deploy is l
    SENTRY_DSN=<optional, worker project DSN>
    ```
 4. Deploy. The logs should end with `WeShot worker ready (concurrency 4)`.
-5. **Scaling (product spec §9)**: when the `capture` queue regularly has more than 20 waiting jobs, raise `numReplicas` in `apps/worker/railway.json` (or **Settings → Deploy → Replicas**). Check depth with `redis-cli -u $REDIS_URL LLEN bull:capture:wait`.
+5. **Check the whole chain**: open `https://<your site>/api/health`. Every value must be true (and `storage` must be `r2`) before link capture, recordings and share links work. `worker: true` means a worker has checked in with Redis within the last 30 seconds.
+6. **Scaling (product spec §9)**: when the `capture` queue regularly has more than 20 waiting jobs, raise `numReplicas` in `apps/worker/railway.json` (or **Settings → Deploy → Replicas**). Check depth with `redis-cli -u $REDIS_URL LLEN bull:capture:wait`.
 
 ---
 

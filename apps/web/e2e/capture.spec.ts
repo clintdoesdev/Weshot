@@ -88,3 +88,11 @@ test('a submit before hydration still frames the link (no-JS form fallback)', as
   await expect(page.getByRole('img', { name: /screenshot of mock-site\.test/ })).toBeVisible({ timeout: 10_000 });
   expect(new URL(page.url()).search).toBe('');
 });
+
+test('when link capture is not set up, the page says so and offers a screenshot', async ({ page }) => {
+  await bar(page).fill('offline.test');
+  await bar(page).press('Enter');
+  const help = page.locator('#ws-paste-input-help');
+  await expect(help.getByText("Link capture isn't available right now. Paste a screenshot instead.")).toBeVisible();
+  await expect(help.getByRole('button', { name: 'Paste a screenshot instead' })).toBeVisible();
+});

@@ -76,3 +76,16 @@ export async function releaseSlot(redis: Redis, ipHash: string): Promise<void> {
 
 /** Lets the client stop a recording; the worker checks this flag between frames. */
 export const stopKey = (jobId: string) => `weshot:job:${jobId}:stop`;
+
+// ---------- worker heartbeat: lets the web app refuse links when no worker is running ----------
+
+export const WORKER_HEARTBEAT_KEY = 'weshot:worker:heartbeat';
+const HEARTBEAT_TTL = 30;
+
+export async function beatWorker(redis: Redis): Promise<void> {
+  await redis.set(WORKER_HEARTBEAT_KEY, String(Date.now()), 'EX', HEARTBEAT_TTL);
+}
+
+export async function isWorkerAlive(redis: Redis): Promise<boolean> {
+  return (await redis.exists(WORKER_HEARTBEAT_KEY)) === 1;
+}

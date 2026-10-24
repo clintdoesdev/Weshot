@@ -109,3 +109,10 @@ Choices made where `WESHOT_PRODUCT_SPEC.md` and `WESHOT_UI_SPEC.md` are silent. 
 - **Expandable controls sheet.** The grabber is a real button: tap it, or drag up/down, to expand or collapse. Expanded hides the paste bar and presets and shrinks the preview to `clamp(120px, 22dvh, 180px)`, so the controls get most of the screen while changes stay visible. Collapsed, the preview is `clamp(150px, 30dvh, 290px)` instead of a fixed 290 px, so short phones still show controls.
 - **The mobile editor uses `100dvh`** (the visible screen), so the Download footer never sits behind mobile browser toolbars.
 - **Full-page threshold raised from 2 : 1 to 3 : 1.** Phone screenshots (about 2.2 : 1) were being treated as full-page captures and cropped to their top. They are now shown whole.
+
+## Link capture availability
+
+- **`CAPTURE_UNAVAILABLE`** ("Link capture isn't available right now. Paste a screenshot instead.") is returned by `/api/capture` and `/api/record` when Redis is unreachable, the Turnstile secret is missing, R2 is not configured (production), or no worker has checked in. The server log names the missing piece. Before this, a site without its backend showed the Turnstile error, or left captures waiting forever.
+- **Worker heartbeat**: each worker writes `weshot:worker:heartbeat` (30 s TTL) every 10 s.
+- **`GET /api/health`** reports `redis`, `turnstile`, `storage`, `worker` and `linkCapture` as booleans (no secrets) so the owner can see what is missing.
+- **Capture watchdog**: the browser gives up with the same message if a capture gets no progress for 90 s (for example, a worker that died mid-job).

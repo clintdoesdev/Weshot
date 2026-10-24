@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 import { isBlockedDomain } from '@/lib/server/blocklist';
 import { mockEnqueue } from '@/lib/server/mock-worker';
 import { apiError, clientIp, ipHashOf, isMockWorker } from '@/lib/server/request';
+import { captureUnavailableReason } from '@/lib/server/setup';
 import { verifyTurnstile } from '@/lib/server/turnstile';
 
 export const runtime = 'nodejs';
@@ -23,11 +24,17 @@ export async function POST(req: Request) {
   if (isMockWorker()) {
     // e2e: "ratelimit.test" shows the rate-limit copy under the bar.
     if (host === 'ratelimit.test') return apiError('RATE_LIMIT', 429, { minutes: 42 });
+    if (host === 'offline.test') return apiError('CAPTURE_UNAVAILABLE', 503);
     const jobId = randomUUID();
     mockEnqueue(jobId, 'capture', url);
     return NextResponse.json({ jobId });
   }
 
+  const unavailable = await captureUnavailableReason();
+  if (unavailable) {
+    console.warn(`[capture] link capture unavailable: ${unavailable} (see /api/health)`);
+    return apiError('CAPTURE_UNAVAILABLE', 503);
+  }
   if (!(await verifyTurnstile(turnstileToken, clientIp(req)))) return apiError('BOT_PROTECTION', 403);
 
   const ipHash = ipHashOf(req);

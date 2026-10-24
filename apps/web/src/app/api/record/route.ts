@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { isBlockedDomain } from '@/lib/server/blocklist';
 import { mockEnqueue } from '@/lib/server/mock-worker';
 import { apiError, clientIp, ipHashOf, isMockWorker } from '@/lib/server/request';
+import { captureUnavailableReason } from '@/lib/server/setup';
 import { verifyTurnstile } from '@/lib/server/turnstile';
 import { TEMPLATE_MAX_BYTES } from '@/lib/server/limits';
 
@@ -26,6 +27,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ jobId });
   }
 
+  const unavailable = await captureUnavailableReason();
+  if (unavailable) {
+    console.warn(`[record] link capture unavailable: ${unavailable} (see /api/health)`);
+    return apiError('CAPTURE_UNAVAILABLE', 503);
+  }
   if (!(await verifyTurnstile(turnstileToken, clientIp(req)))) return apiError('BOT_PROTECTION', 403);
   const size = await getStorage().size(templatePngKey);
   if (size === null || size > TEMPLATE_MAX_BYTES) return apiError('BAD_REQUEST', 400);

@@ -1,4 +1,4 @@
-import { CAPTURE_QUEUE, RECORD_QUEUE, createRedis } from '@weshot/server';
+import { CAPTURE_QUEUE, RECORD_QUEUE, beatWorker, createRedis, getRedis } from '@weshot/server';
 import { Worker } from 'bullmq';
 import { getBlocker } from './adblock';
 import { initMonitoring } from './monitoring';
@@ -26,10 +26,16 @@ for (const w of [captureWorker, recordWorker]) {
   w.on('error', (err) => console.error(`[${w.name}]`, err.message));
 }
 
+// Heartbeat: the web app only accepts links while a worker is alive.
+const beat = () => beatWorker(getRedis()).catch((err: Error) => console.warn('[heartbeat]', err.message));
+void beat();
+const heartbeat = setInterval(beat, 10_000);
+
 console.log(`WeShot worker ready (concurrency ${concurrency})`);
 
 async function shutdown() {
   console.log('Shutting down worker');
+  clearInterval(heartbeat);
   await Promise.allSettled([captureWorker.close(), recordWorker.close()]);
   process.exit(0);
 }
