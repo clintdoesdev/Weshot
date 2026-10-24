@@ -16,10 +16,6 @@ const config: NextConfig = {
   outputFileTracingRoot: repoRoot,
   // Native or dynamically-loaded server deps stay in node_modules instead of the route bundles.
   serverExternalPackages: ['@sparticuz/chromium', 'playwright-core', 'ioredis'],
-  // The serverless Chromium binary is read from disk at runtime, so file tracing can't see it.
-  outputFileTracingIncludes: {
-    '/api/capture': ['./node_modules/@sparticuz/chromium/bin/**'],
-  },
   poweredByHeader: false,
   env: {
     // The spec names the variable TURNSTILE_SITE_KEY; the browser needs it too.

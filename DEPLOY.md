@@ -11,7 +11,7 @@ required keys**.
 2. Check **Root Directory** is `apps/web` and **Framework Preset** is Next.js.
 3. Press **Deploy**. That's it.
 
-The capture function gets 2 GB of memory and up to 60 s (`apps/web/vercel.json`), which fits the Hobby plan.
+The capture function runs with Vercel's default 2 GB of memory and up to 60 s (`maxDuration` in the route), which fits the Hobby plan. Memory is not set in a `vercel.json` because the Hobby plan rejects deployments that configure it.
 
 ## Optional extras
 
