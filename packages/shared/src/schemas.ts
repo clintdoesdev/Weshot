@@ -66,25 +66,6 @@ export type WindowStyle = FrameSettings['window']['style'];
 export type WindowTheme = FrameSettings['window']['theme'];
 export type ShadowKind = FrameSettings['shadow'];
 
-// ---------- record ----------
-
-export const recordSettingsSchema = z
-  .object({
-    type: z.enum(['scroll', 'tour']),
-    sections: z.array(z.string().min(1).max(200)).max(12).optional(),
-    lengthSec: z.number().min(LIMITS.minVideoSec).max(LIMITS.maxVideoSec),
-    easing: z.enum(['linear', 'easeInOut']),
-    pauseAtHeadings: z.boolean(),
-    cursor: z.boolean(),
-    fps: z.union([z.literal(30), z.literal(60)]),
-    format: z.enum(['mp4', 'webm', 'gif']),
-  })
-  .refine((r) => r.format !== 'gif' || r.lengthSec <= LIMITS.maxGifSec, {
-    message: `GIFs can be at most ${LIMITS.maxGifSec} seconds`,
-    path: ['lengthSec'],
-  });
-export type RecordSettings = z.infer<typeof recordSettingsSchema>;
-
 export const rectSchema = z.object({
   x: z.number(),
   y: z.number(),
@@ -93,65 +74,12 @@ export const rectSchema = z.object({
 });
 export type Rect = z.infer<typeof rectSchema>;
 
-// ---------- API bodies (product spec §4.5) ----------
-
 export const captureRequestSchema = z.object({
   capture: captureSettingsSchema,
-  turnstileToken: z.string().min(1).max(4096),
+  /** Only checked when Turnstile is configured. */
+  turnstileToken: z.string().max(4096).optional(),
 });
 export type CaptureRequest = z.infer<typeof captureRequestSchema>;
-
-export const recordRequestSchema = z.object({
-  capture: captureSettingsSchema,
-  record: recordSettingsSchema,
-  templatePngKey: z.string().regex(/^templates\/[\w\-/.]+\.png$/),
-  contentRect: rectSchema,
-  /** Rounded-corner radius of the content area in video px, for the alpha mask. */
-  contentRadius: z.number().min(0).max(200).optional(),
-  /** Output video size in px (the size of the template). */
-  output: z.object({ width: z.number().int().min(200).max(3840), height: z.number().int().min(200).max(3840) }),
-  turnstileToken: z.string().min(1).max(4096),
-});
-export type RecordRequest = z.infer<typeof recordRequestSchema>;
-
-export const uploadRequestSchema = z.object({
-  kind: z.enum(['template', 'share']),
-  contentType: z.enum(['image/png', 'image/jpeg', 'image/webp', 'video/mp4', 'video/webm', 'image/gif']),
-});
-export type UploadRequest = z.infer<typeof uploadRequestSchema>;
-
-export const uploadResponseSchema = z.object({
-  url: z.string(),
-  key: z.string(),
-  headers: z.record(z.string()),
-});
-export type UploadResponse = z.infer<typeof uploadResponseSchema>;
-
-export const shareRequestSchema = z.object({
-  key: z.string().regex(/^shares\/[\w\-/.]+$/),
-  kind: z.enum(['image', 'video']),
-  width: z.number().int().min(1).max(20_000),
-  height: z.number().int().min(1).max(20_000),
-});
-export type ShareRequest = z.infer<typeof shareRequestSchema>;
-
-export const shareResponseSchema = z.object({
-  id: z.string(),
-  url: z.string(),
-  deleteToken: z.string(),
-  expiresAt: z.string(),
-});
-export type ShareResponse = z.infer<typeof shareResponseSchema>;
-
-export const JOB_STATUSES = ['queued', 'loading', 'fonts', 'capturing', 'encoding', 'done', 'failed'] as const;
-export type JobStatus = (typeof JOB_STATUSES)[number];
-
-/** One message on the job event channel (Redis pub/sub → SSE). */
-export type JobEvent =
-  | { type: 'status'; status: JobStatus }
-  | { type: 'progress'; progress: number; elapsedSec?: number; totalSec?: number }
-  | { type: 'result'; assetUrl: string; width?: number; height?: number; title?: string; truncated?: boolean }
-  | { type: 'error'; code: string; message: string; status?: number };
 
 // ---------- user presets: localStorage + JSON import/export ----------
 

@@ -8,7 +8,6 @@ import { BackgroundControls } from '../controls/BackgroundControls';
 import { CaptureControls } from '../controls/CaptureControls';
 import { ExportControls } from '../controls/ExportControls';
 import { LayoutControls } from '../controls/LayoutControls';
-import { RecordPanel } from '../controls/RecordPanel';
 import { WindowControls } from '../controls/WindowControls';
 import { PresetChips } from '../editor/PresetChips';
 import { PreviewStage } from '../editor/PreviewStage';
@@ -127,7 +126,6 @@ export function MobileEditor() {
           {tab === 'frame' ? <WindowControls /> : null}
           {tab === 'background' ? <BackgroundControls columns={6} /> : null}
           {tab === 'layout' ? <LayoutControls /> : null}
-          {tab === 'record' ? <RecordPanel /> : null}
           {tab === 'export' ? <ExportControls /> : null}
         </div>
         <div className="flex shrink-0 gap-2.5 border-t border-white/10 px-4 pb-[max(14px,env(safe-area-inset-bottom))] pt-3">

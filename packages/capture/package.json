@@ -1,0 +1,23 @@
+{
+  "name": "@weshot/capture",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@ghostery/adblocker": "2.20.1",
+    "@sparticuz/chromium": "141.0.0",
+    "@weshot/shared": "workspace:*",
+    "ipaddr.js": "2.5.0",
+    "playwright-core": "1.56.1"
+  },
+  "devDependencies": {
+    "vitest": "^4.0.5"
+  }
+}

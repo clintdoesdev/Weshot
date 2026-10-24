@@ -1,18 +1,14 @@
 import { NextResponse } from 'next/server';
-import { isMockWorker } from '@/lib/server/request';
-import { setupStatus } from '@/lib/server/setup';
+import { usingRedis } from '@/lib/server/ratelimit';
+import { turnstileEnabled } from '@/lib/server/turnstile';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-/**
- * GET /api/health: which parts of link capture are set up (see DEPLOY.md). Booleans only, no secrets.
- * Image mode works regardless; links, recordings and share links need all of these.
- */
+/** GET /api/health — capture runs inside this app; Redis (shared rate limits) and Turnstile are optional. */
 export async function GET() {
-  if (isMockWorker()) return NextResponse.json({ redis: true, turnstile: true, storage: 'local', worker: true, linkCapture: true });
-  const s = await setupStatus();
-  const prod = process.env.NODE_ENV === 'production';
-  const linkCapture = s.redis && s.turnstile && s.worker && (!prod || s.storage === 'r2');
-  return NextResponse.json({ ...s, linkCapture }, { headers: { 'cache-control': 'no-store' } });
+  return NextResponse.json(
+    { capture: 'built-in', rateLimits: usingRedis() ? 'redis' : 'memory', turnstile: turnstileEnabled() },
+    { headers: { 'cache-control': 'no-store' } },
+  );
 }

@@ -15,7 +15,6 @@ import { useBackgroundImage } from './useEditorEffects';
 const Editor = dynamic(() => import('./Editor').then((m) => m.Editor), { ssr: false, loading: () => <EditorPlaceholder /> });
 const MobileEditor = dynamic(() => import('../mobile/MobileEditor').then((m) => m.MobileEditor), { ssr: false });
 const DownloadSheet = dynamic(() => import('../mobile/DownloadSheet').then((m) => m.DownloadSheet), { ssr: false });
-const ShareDialog = dynamic(() => import('./ShareDialog').then((m) => m.ShareDialog), { ssr: false });
 const ShortcutsDialog = dynamic(() => import('./ShortcutsDialog').then((m) => m.ShortcutsDialog), { ssr: false });
 
 function EditorPlaceholder() {
@@ -29,7 +28,6 @@ export function EditorRoot() {
   const desktop = useMediaQuery('(min-width: 768px)');
   const mobileOpen = useEditor((s) => s.mobileEditorOpen);
   const sheetOpen = useEditor((s) => s.downloadSheetOpen);
-  const shareOpen = useEditor((s) => s.share.kind !== 'closed');
   const shortcutsOpen = useEditor((s) => s.shortcutsOpen);
 
   useEffect(() => {
@@ -67,7 +65,6 @@ export function EditorRoot() {
               {mobileOpen ? <MobileEditor /> : null}
               {sheetOpen ? <DownloadSheet /> : null}
               {shortcutsOpen ? <ShortcutsDialog /> : null}
-              {shareOpen ? <ShareDialog /> : null}
               <Toast />
             </>,
             document.body,

@@ -35,7 +35,7 @@ export function handleEditorKeyDown(e: KeyboardEvent, onTab?: (tab: (typeof EDIT
       e.preventDefault();
       void recapture();
     }
-  } else if (/^[1-6]$/.test(e.key)) {
+  } else if (new RegExp(`^[1-${EDITOR_TABS.length}]$`).test(e.key)) {
     const tab = EDITOR_TABS[Number(e.key) - 1]!.id;
     e.preventDefault();
     s.setActiveTab(tab);

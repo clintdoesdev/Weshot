@@ -1,4 +1,4 @@
-import type { CaptureSettings, FrameSettings, RecordSettings } from './schemas';
+import type { CaptureSettings, FrameSettings } from './schemas';
 
 export type FramePreset = { id: string; name: string; frame: FrameSettings };
 
@@ -93,14 +93,4 @@ export const DEFAULT_CAPTURE: Omit<CaptureSettings, 'url'> = {
   colorScheme: 'auto',
   delayMs: 0,
   hideBanners: true,
-};
-
-export const DEFAULT_RECORD: RecordSettings = {
-  type: 'scroll',
-  lengthSec: 12,
-  easing: 'easeInOut',
-  pauseAtHeadings: true,
-  cursor: true,
-  fps: 30,
-  format: 'mp4',
 };

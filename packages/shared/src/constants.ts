@@ -28,21 +28,10 @@ export function getSizePreset(id: SizePresetId) {
 export const LIMITS = {
   capturesPerHour: 30,
   capturesPerDay: 150,
-  recordingsPerHour: 5,
-  recordingsPerDay: 20,
   concurrentJobsPerIp: 2,
-  maxVideoSec: 60,
-  minVideoSec: 5,
-  maxGifSec: 15,
-  gifWidth: 800,
-  gifFps: 15,
   maxFullPageHeight: 16_000,
   maxImageBytes: 25 * 1024 * 1024,
   maxImageSide: 8_000,
-  maxShareBytes: 50 * 1024 * 1024,
-  shareTtlDays: 30,
-  assetTtlHours: 24,
-  jobRetentionDays: 30,
   maxRedirects: 5,
   navigationTimeoutMs: 30_000,
   maxResponseBytes: 50 * 1024 * 1024,
@@ -59,14 +48,8 @@ export type ExportScale = (typeof EXPORT_SCALES)[number];
 export const IMAGE_FORMATS = ['png', 'jpg', 'webp'] as const;
 export type ImageFormat = (typeof IMAGE_FORMATS)[number];
 
-export const VIDEO_FORMATS = ['mp4', 'webm', 'gif'] as const;
-export type VideoFormat = (typeof VIDEO_FORMATS)[number];
-
-export const MIME_TYPES: Record<ImageFormat | VideoFormat, string> = {
+export const MIME_TYPES: Record<ImageFormat, string> = {
   png: 'image/png',
   jpg: 'image/jpeg',
   webp: 'image/webp',
-  mp4: 'video/mp4',
-  webm: 'video/webm',
-  gif: 'image/gif',
 };

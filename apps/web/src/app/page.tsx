@@ -5,7 +5,6 @@ import { Gallery } from '@/components/landing/Gallery';
 import { Hero } from '@/components/landing/Hero';
 import { MobileDemoCard } from '@/components/landing/MobileDemoCard';
 import { Nav } from '@/components/landing/Nav';
-import { Recordings } from '@/components/landing/Recordings';
 import { Steps } from '@/components/landing/Steps';
 import { Glow } from '@/components/ui/Glow';
 
@@ -27,7 +26,6 @@ export default function Home() {
         </section>
         <Gallery />
         <Steps />
-        <Recordings />
         <Faq />
       </main>
       <Footer />

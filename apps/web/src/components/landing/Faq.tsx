@@ -12,7 +12,7 @@ const QUESTIONS = [
     mobileOrder: 'max-md:hidden',
   },
   { q: 'Do I need an account?', a: 'No. Paste, style, download. Your presets are saved in your browser.', mobileOrder: 'max-md:order-1' },
-  { q: 'Is it really free?', a: 'Yes. Captures, recordings and downloads are all free to use.', mobileOrder: 'max-md:order-3' },
+  { q: 'Is it really free?', a: 'Yes. Captures and downloads are free to use.', mobileOrder: 'max-md:order-3' },
 ];
 
 /** UI spec §3.1 item 7 and the copy deck in §5. Mobile shows account, login pages and free (§3.3). */

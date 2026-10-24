@@ -32,8 +32,6 @@ export async function loadImageFile(file: File): Promise<void> {
     track('image_added');
     s.setPhase({ kind: 'idle' });
     s.setCapturedWith(null);
-    s.setVideo(null);
-    if (s.exportFormat === 'mp4' || s.exportFormat === 'webm' || s.exportFormat === 'gif') s.setExportFormat('png');
     revealEditor();
   } catch (err) {
     const code = err instanceof ImageTooLargeError ? 'IMAGE_TOO_LARGE' : 'NOT_AN_IMAGE';
@@ -92,8 +90,7 @@ export async function downloadImage(format: ImageFormat = imageFormat(), scale: 
 }
 
 function imageFormat(): ImageFormat {
-  const f = get().exportFormat;
-  return f === 'jpg' || f === 'webp' ? f : 'png';
+  return get().exportFormat;
 }
 
 /** Copy image: always a PNG (the only type every clipboard accepts). */
@@ -110,15 +107,7 @@ export async function copyImage(): Promise<void> {
   }
 }
 
-/** Download button: video when a video is ready and selected, otherwise the image. */
+/** Download button: the image in the selected format and scale. */
 export async function downloadCurrent(): Promise<void> {
-  const s = get();
-  const f = s.exportFormat;
-  if ((f === 'mp4' || f === 'webm' || f === 'gif') && s.video) {
-    track('download', { kind: 'video', format: s.video.format });
-    const res = await fetch(s.video.url);
-    saveBlob(await res.blob(), exportFilename(sourceUrl(s.source), s.video.width, s.video.height, s.video.format));
-    return;
-  }
   await downloadImage();
 }

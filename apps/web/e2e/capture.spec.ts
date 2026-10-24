@@ -96,3 +96,9 @@ test('when link capture is not set up, the page says so and offers a screenshot'
   await expect(help.getByText("Link capture isn't available right now. Paste a screenshot instead.")).toBeVisible();
   await expect(help.getByRole('button', { name: 'Paste a screenshot instead' })).toBeVisible();
 });
+
+test('there is no recording or share link any more', async ({ page }) => {
+  await expect(page.getByRole('tab', { name: 'Record' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Share link' })).toHaveCount(0);
+  await expect(page.getByRole('tab')).toHaveText(['Capture', 'Frame', 'Background', 'Layout', 'Export']);
+});

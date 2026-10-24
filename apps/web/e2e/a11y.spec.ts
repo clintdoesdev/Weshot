@@ -38,12 +38,12 @@ test('error state', async ({ page }) => {
   await audit(page);
 });
 
-test('recording layout', async ({ page }) => {
+test('captured link', async ({ page }) => {
   await openHome(page);
   await page.locator('#ws-paste-input').fill('mock-site.test');
   await page.locator('#ws-paste-input').press('Enter');
   await expect(page.getByRole('img', { name: /screenshot of mock-site/ })).toBeVisible({ timeout: 10_000 });
-  await page.getByRole('tab', { name: 'Record' }).click();
+  await expect(page.getByText(/Loading page|Waiting for fonts|Framing/)).toHaveCount(0, { timeout: 10_000 });
   await audit(page);
 });
 

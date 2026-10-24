@@ -1,15 +1,13 @@
 'use client';
 
 import { create } from 'zustand';
-import { DEFAULT_CAPTURE, DEFAULT_FRAME, DEFAULT_RECORD } from '@weshot/shared/presets';
+import { DEFAULT_CAPTURE, DEFAULT_FRAME } from '@weshot/shared/presets';
 import type {
   BackgroundSetting,
   CaptureSettings,
   ExportScale,
   FrameSettings,
   ImageFormat,
-  RecordSettings,
-  VideoFormat,
 } from '@weshot/shared';
 
 export const EDITOR_TABS = [
@@ -17,7 +15,6 @@ export const EDITOR_TABS = [
   { id: 'frame', label: 'Frame' },
   { id: 'background', label: 'Background' },
   { id: 'layout', label: 'Layout' },
-  { id: 'record', label: 'Record' },
   { id: 'export', label: 'Export' },
 ] as const;
 export type EditorTab = (typeof EDITOR_TABS)[number]['id'];
@@ -44,19 +41,6 @@ export type Phase =
 
 export type Toast = { id: number; message: string; action?: { label: string; run: () => void } };
 
-export type VideoResult = { url: string; format: VideoFormat; width: number; height: number };
-
-export type ShareDialogState =
-  | { kind: 'closed' }
-  | { kind: 'working' }
-  | { kind: 'ready'; id: string; url: string }
-  | { kind: 'error'; message: string };
-
-export type RecordingState =
-  | { kind: 'idle' }
-  | { kind: 'recording'; elapsedSec: number; totalSec: number; progress: number; status: string }
-  | { kind: 'error'; message: string };
-
 type State = {
   source: Source;
   /** Bumped whenever a new source appears, to replay the fade-in. */
@@ -65,8 +49,6 @@ type State = {
   capture: CaptureOptions;
   /** Capture settings used for the current URL capture; differences show the Re-capture pill. */
   capturedWith: CaptureOptions | null;
-  record: RecordSettings;
-  exportFormat: ImageFormat | VideoFormat;
   exportScale: ExportScale;
   activeTab: EditorTab;
   phase: Phase;
@@ -80,9 +62,7 @@ type State = {
   mobileEditorOpen: boolean;
   downloadSheetOpen: boolean;
   shortcutsOpen: boolean;
-  video: VideoResult | null;
-  recording: RecordingState;
-  share: ShareDialogState;
+  exportFormat: ImageFormat;
 };
 
 type Actions = {
@@ -91,8 +71,6 @@ type Actions = {
   setBackground: (bg: BackgroundSetting) => void;
   applyFrame: (frame: FrameSettings) => void;
   setCapture: (patch: Partial<CaptureOptions>) => void;
-  setRecord: (patch: Partial<RecordSettings>) => void;
-  setExportFormat: (f: ImageFormat | VideoFormat) => void;
   setExportScale: (s: ExportScale) => void;
   setActiveTab: (t: EditorTab) => void;
   setSource: (s: Source) => void;
@@ -106,10 +84,8 @@ type Actions = {
   setMobileEditorOpen: (open: boolean) => void;
   setDownloadSheetOpen: (open: boolean) => void;
   setShortcutsOpen: (open: boolean) => void;
-  setVideo: (v: VideoResult | null) => void;
-  setRecording: (r: RecordingState) => void;
+  setExportFormat: (f: ImageFormat) => void;
   setCapturedWith: (c: CaptureOptions | null) => void;
-  setShare: (s: ShareDialogState) => void;
 };
 
 let toastId = 0;
@@ -120,7 +96,6 @@ export const useEditor = create<State & Actions>()((set) => ({
   frame: DEFAULT_FRAME,
   capture: DEFAULT_CAPTURE,
   capturedWith: null,
-  record: DEFAULT_RECORD,
   exportFormat: 'png',
   exportScale: 2,
   activeTab: 'background',
@@ -133,9 +108,6 @@ export const useEditor = create<State & Actions>()((set) => ({
   mobileEditorOpen: false,
   downloadSheetOpen: false,
   shortcutsOpen: false,
-  video: null,
-  recording: { kind: 'idle' },
-  share: { kind: 'closed' },
 
   setFrame: (patch) => set((s) => ({ frame: { ...s.frame, ...patch } })),
   setWindow: (patch) => set((s) => ({ frame: { ...s.frame, window: { ...s.frame.window, ...patch } } })),
@@ -145,7 +117,6 @@ export const useEditor = create<State & Actions>()((set) => ({
     set((s) => ({
       capture: { ...s.capture, ...patch, viewport: { ...s.capture.viewport, ...(patch.viewport ?? {}) } },
     })),
-  setRecord: (patch) => set((s) => ({ record: { ...s.record, ...patch } })),
   setExportFormat: (exportFormat) => set({ exportFormat }),
   setExportScale: (exportScale) => set({ exportScale }),
   setActiveTab: (activeTab) => set({ activeTab }),
@@ -165,10 +136,7 @@ export const useEditor = create<State & Actions>()((set) => ({
   setMobileEditorOpen: (mobileEditorOpen) => set({ mobileEditorOpen }),
   setDownloadSheetOpen: (downloadSheetOpen) => set({ downloadSheetOpen }),
   setShortcutsOpen: (shortcutsOpen) => set({ shortcutsOpen }),
-  setVideo: (video) => set({ video }),
-  setRecording: (recording) => set({ recording }),
   setCapturedWith: (capturedWith) => set({ capturedWith }),
-  setShare: (share) => set({ share }),
 }));
 
 /** Link-only controls are disabled for pasted images (product spec §3.2). */

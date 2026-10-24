@@ -1,7 +1,7 @@
 const STEPS = [
   { title: 'Paste a link or an image', body: 'Drop in any public URL, or paste a screenshot straight from your clipboard.' },
   { title: 'Style the frame', body: 'Pick a window, a background and the spacing. Every change shows up instantly.' },
-  { title: 'Download or share', body: 'Save a PNG, JPG, WebP or scroll video, copy it, or make a share link.' },
+  { title: 'Download or copy', body: 'Save a PNG, JPG or WebP at up to 4x, or copy it straight into your post.' },
 ];
 
 /** UI spec §3.1 item 5. */

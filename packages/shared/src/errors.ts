@@ -12,6 +12,7 @@ export const ERROR_CODES = [
   'BLOCKED_SITE',
   'BOT_PROTECTION',
   'CAPTURE_UNAVAILABLE',
+  'PAGE_TOO_LARGE',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 
@@ -29,6 +30,7 @@ export const ERROR_ACTIONS: Record<ErrorCode, ErrorAction[]> = {
   BLOCKED_SITE: ['paste-screenshot'],
   BOT_PROTECTION: ['retry'],
   CAPTURE_UNAVAILABLE: ['paste-screenshot'],
+  PAGE_TOO_LARGE: ['paste-screenshot'],
 };
 
 export function errorMessage(code: string, params: { status?: number; minutes?: number } = {}): string {
@@ -51,6 +53,8 @@ export function errorMessage(code: string, params: { status?: number; minutes?: 
     // Not in product spec §6; see DECISIONS.md.
     case 'BLOCKED_SITE':
       return "WeShot can't open this site.";
+    case 'PAGE_TOO_LARGE':
+      return 'This page is too long to capture. Turn off Full page or paste a screenshot.';
     case 'CAPTURE_UNAVAILABLE':
       return "Link capture isn't available right now. Paste a screenshot instead.";
     case 'BOT_PROTECTION':

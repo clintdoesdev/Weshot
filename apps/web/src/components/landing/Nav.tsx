@@ -7,7 +7,6 @@ import { Logo } from '../ui/Logo';
 
 const LINKS = [
   { href: '#gallery', label: 'Examples' },
-  { href: '#recordings', label: 'Recordings' },
   { href: '#faq', label: 'FAQ' },
 ];
 

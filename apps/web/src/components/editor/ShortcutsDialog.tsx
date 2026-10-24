@@ -9,7 +9,7 @@ const SHORTCUTS: Array<[string, string]> = [
   ['Cmd/Ctrl + C (focus not in a field)', 'Copy image'],
   ['Cmd/Ctrl + S', 'Download with current settings'],
   ['R', 'Re-capture'],
-  ['1–6', 'Switch editor tab'],
+  ['1–5', 'Switch editor tab'],
   ['Shift + /', 'Shortcuts dialog'],
 ];
 

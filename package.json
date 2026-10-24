@@ -6,16 +6,12 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "pnpm -r --parallel --filter @weshot/web --filter @weshot/worker dev",
-    "dev:web": "pnpm --filter @weshot/web dev",
-    "dev:worker": "pnpm --filter @weshot/worker dev",
+    "dev": "pnpm --filter @weshot/web dev",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "test:e2e": "pnpm --filter @weshot/web test:e2e",
     "lint": "eslint . --max-warnings 0",
-    "typecheck": "pnpm -r typecheck",
-    "services:up": "docker compose up -d",
-    "services:down": "docker compose down"
+    "typecheck": "pnpm -r typecheck"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",
@@ -32,8 +28,7 @@
       "sharp",
       "@napi-rs/canvas",
       "unrs-resolver",
-      "msgpackr-extract",
-      "ffmpeg-static"
+      "msgpackr-extract"
     ],
     "ignoredBuiltDependencies": [
       "core-js"

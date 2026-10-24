@@ -31,7 +31,6 @@ export function PreviewStage({ variant, className }: Props) {
   const zoom = useEditor((s) => s.zoom);
   const setZoom = useEditor((s) => s.setZoom);
   const setFitZoom = useEditor((s) => s.setFitZoom);
-  const recording = useEditor((s) => s.recording);
   const description = usePreviewDescription();
 
   const wrap = useRef<HTMLDivElement>(null);
@@ -161,28 +160,14 @@ export function PreviewStage({ variant, className }: Props) {
           ) : null}
         </div>
       </div>
-      {capturing ? <StatusPill tone="capturing" label={STEP_LABEL[phase.step]} /> : null}
+      {capturing ? <StatusPill label={STEP_LABEL[phase.step]} /> : null}
       {phase.kind === 'error' && isErrorCode(phase.code) && ERROR_ACTIONS[phase.code].length > 0 && phase.code !== 'INVALID_URL' ? (
         <div className="glass-pill-status absolute bottom-[22px] left-1/2 z-10 flex w-max max-w-[calc(100%-24px)] -translate-x-1/2 flex-wrap items-center justify-center gap-3 rounded-[20px] border-ws-yellow-line px-4 py-3 text-[14px]">
           <span>{phase.message}</span>
           <ErrorActions code={phase.code} />
         </div>
       ) : null}
-      {recording.kind === 'recording' ? <RecordingPill /> : null}
     </div>
   );
 }
 
-function RecordingPill() {
-  const recording = useEditor((s) => s.recording);
-  if (recording.kind !== 'recording') return null;
-  return (
-    <StatusPill
-      tone="recording"
-      label={recording.status}
-      progress={recording.progress}
-      time={`${recording.elapsedSec.toFixed(1)} s / ${recording.totalSec} s`}
-      onStop={() => window.dispatchEvent(new CustomEvent('weshot:stop-recording'))}
-    />
-  );
-}

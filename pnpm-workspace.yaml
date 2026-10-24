@@ -7,6 +7,5 @@ onlyBuiltDependencies:
   - "@napi-rs/canvas"
   - unrs-resolver
   - msgpackr-extract
-  - ffmpeg-static
 ignoredBuiltDependencies:
   - core-js

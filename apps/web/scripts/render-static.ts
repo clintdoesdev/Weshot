@@ -109,18 +109,6 @@ for (const ex of GALLERY_EXAMPLES) {
   save(c, `gallery-${ex.id}.webp`);
 }
 
-// Recordings card: the window alone on transparent, shown over a Honey card.
-save(
-  frame(
-    { ...DEFAULT_FRAME, background: { kind: 'transparent' }, padding: 60, canvas: { width: 1100, height: 760 } },
-    demo(),
-    1100,
-    760,
-    1,
-  ),
-  'recording-window.webp',
-);
-
 // Mobile landing demo card: Honey stage 230 px tall at 390 wide.
 save(frame({ ...BUILT_IN_PRESETS[0]!.frame, canvas: { width: 716, height: 460 }, padding: 34 }, demo(), 716, 460, 1), 'demo-mobile.webp');
 

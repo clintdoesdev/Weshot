@@ -18,6 +18,6 @@ export default defineConfig({
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 240_000,
-    env: { NEXT_PUBLIC_E2E: '1', E2E_MOCK_WORKER: '1' },
+    env: { NEXT_PUBLIC_E2E: '1', E2E_MOCK_CAPTURE: '1' },
   },
 });

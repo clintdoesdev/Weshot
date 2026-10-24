@@ -5,16 +5,16 @@ export const metadata: Metadata = { title: 'Terms of use · WeShot', description
 
 export default function TermsPage() {
   return (
-    <LegalPage title="Terms of use" updated="October 23, 2026">
+    <LegalPage title="Terms of use" updated="October 24, 2026">
       <p>
         WeShot is a free tool made by Nova Pixel Studios (&ldquo;we&rdquo;). It frames screenshots and websites in a window on a background and lets you
-        download or share the result. By using WeShot you agree to these terms.
+        download the result. By using WeShot you agree to these terms.
       </p>
 
       <h2>No account, no cost</h2>
       <p>
-        WeShot has no accounts and costs nothing. We may limit how often you can capture, record or share, so the service stays free and fast for
-        everyone. Current limits are 30 captures per hour (150 per day), 5 recordings per hour (20 per day) and 2 jobs at a time.
+        WeShot has no accounts and costs nothing. We may limit how often you can capture websites, so the service stays free and fast for everyone.
+        Current limits are 30 captures per hour (150 per day) and 2 at a time.
       </p>
 
       <h2>What you can and cannot do</h2>
@@ -24,18 +24,12 @@ export default function TermsPage() {
         <li>Do not try to reach private networks, bypass our limits or bot protection, or overload the service.</li>
         <li>Do not use WeShot to impersonate other people or companies, for example to fake login pages or receipts.</li>
       </ul>
-      <p>We may block sites, remove share links or refuse requests that break these rules.</p>
+      <p>We may block sites or refuse requests that break these rules.</p>
 
       <h2>Your content</h2>
       <p>
-        You keep all rights to what you paste, capture and download. Images you paste stay in your browser unless you create a share link. When you
+        You keep all rights to what you paste, capture and download. Images you paste stay in your browser. When you
         capture a website, the page belongs to its owner; you are responsible for how you use the result.
-      </p>
-
-      <h2>Share links</h2>
-      <p>
-        A share link makes the file public to anyone who has the link. Links expire after 30 days. The browser that made a link can delete it at any
-        time. You can report a share link from its page.
       </p>
 
       <h2>No warranty</h2>

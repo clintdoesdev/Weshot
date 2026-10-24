@@ -1,51 +1,41 @@
 # WeShot
 
-A free web tool that turns a website link or a pasted screenshot into an image or scroll video, framed in a
-macOS-style window on a background you pick. No accounts, no sign-in, no pricing.
+A free web tool that turns a website link or a pasted screenshot into an image framed in a macOS-style window on a
+background you pick. No accounts, no sign-in, no pricing, and no services to set up: it is one Next.js app.
 
-- `WESHOT_PRODUCT_SPEC.md`: scope, architecture, API, limits (source of truth for behaviour and production)
-- `WESHOT_UI_SPEC.md`: tokens, components, screens, copy (source of truth for look and feel)
-- `DECISIONS.md`: choices made where the specs are silent
-- `DEPLOY.md`: Vercel, Railway and Cloudflare setup, step by step
+- `WESHOT_PRODUCT_SPEC.md` / `WESHOT_UI_SPEC.md`: the original specs (recording and share links have since been removed; see `DECISIONS.md`)
+- `DECISIONS.md`: choices made where the specs are silent, and later scope changes
+- `DEPLOY.md`: deploying to Vercel (no keys required)
 - `LAUNCH.md`: launch checklist status
 
 ## Layout
 
 ```
-apps/web/          Next.js 15 App Router: landing page, editor, API routes, share pages
-apps/worker/       BullMQ consumer: Playwright Chromium behind an SSRF proxy, FFmpeg recordings
-packages/frame/    renderFrame(): the compositor behind preview, export and video templates
+apps/web/          Next.js 15: landing page, editor, /api/capture (headless Chrome), Terms, Privacy
+packages/capture/  Website snaps: Playwright + serverless Chromium behind an SSRF-safe proxy
+packages/frame/    renderFrame(): the compositor behind the preview and every export
 packages/shared/   Zod schemas, settings types, presets, backgrounds, limits, error copy
-packages/server/   Node-only helpers shared by web and worker: storage (R2/local), Redis, queues, rate limits
 ```
 
 ## Run it
 
 ```bash
 pnpm install
-cp .env.example .env
-pnpm services:up          # Redis (Docker)
-pnpm dev                  # web on http://localhost:3000 and the worker
+pnpm --filter @weshot/web exec playwright install chromium
+pnpm dev            # http://localhost:3000
 ```
-
-Image mode (paste, drop or pick a screenshot) needs no backend: `pnpm dev:web` is enough.
-Without R2 variables, captures, recordings and share files are stored in `.data/storage`.
 
 | Script | What it does |
 | --- | --- |
-| `pnpm dev` | Web + worker in watch mode |
+| `pnpm dev` | The web app in watch mode |
 | `pnpm build` | Every package |
-| `pnpm test` | Vitest everywhere: schemas, compositor snapshots, Redis limits, SSRF suite, recordings |
-| `pnpm test:e2e` | Playwright e2e (desktop + mobile, axe) against a production build with a mocked worker |
+| `pnpm test` | Vitest: schemas, compositor snapshots, rate limits, SSRF suite and captures in real Chromium |
+| `pnpm test:e2e` | Playwright e2e (desktop + mobile, axe) against a production build with canned captures |
 | `pnpm lint` / `pnpm typecheck` | ESLint / `tsc --noEmit` in strict mode |
 | `pnpm --filter @weshot/frame test:update` | Rewrite compositor snapshots after an intended visual change |
-| `pnpm --filter @weshot/web render:static` | Re-render gallery, recordings card and OG images |
-
-The worker tests need Chromium (`pnpm --filter @weshot/worker exec playwright install chromium`) and use the
-bundled `ffmpeg-static`. Redis tests run when Redis is reachable at `REDIS_URL` and skip otherwise.
+| `pnpm --filter @weshot/web render:static` | Re-render the gallery, mobile demo and OG images |
 
 ## Fonts
 
 UI type is `'Givonic', 'Outfit', system-ui, sans-serif`. Outfit loads via `next/font/google`. To use Givonic,
-drop the licensed WOFF2 files into `apps/web/src/fonts/givonic/` (names in the README there); the build picks
-them up automatically.
+drop the licensed WOFF2 files into `apps/web/src/fonts/givonic/`; the build picks them up automatically.

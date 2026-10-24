@@ -5,7 +5,7 @@ import './globals.css';
 
 const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://weshot.app';
 const description =
-  'Paste a link or an image. WeShot wraps it in a macOS window on the background you pick, ready to download as an image or a scroll video.';
+  'Paste a link or an image. WeShot wraps it in a macOS window on the background you pick, ready to download as an image.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(site),

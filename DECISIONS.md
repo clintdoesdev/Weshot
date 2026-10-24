@@ -116,3 +116,15 @@ Choices made where `WESHOT_PRODUCT_SPEC.md` and `WESHOT_UI_SPEC.md` are silent. 
 - **Worker heartbeat**: each worker writes `weshot:worker:heartbeat` (30 s TTL) every 10 s.
 - **`GET /api/health`** reports `redis`, `turnstile`, `storage`, `worker` and `linkCapture` as booleans (no secrets) so the owner can see what is missing.
 - **Capture watchdog**: the browser gives up with the same message if a capture gets no progress for 90 s (for example, a worker that died mid-job).
+
+## Simplified: snaps only, no services (owner's call)
+
+The owner asked for something that needs no keys or extra services. This supersedes the phase 4–6 architecture above.
+
+- **Removed:** scroll recordings (Record tab, FFmpeg, the worker), share links (`/s/[id]`, uploads, R2), the BullMQ queue, job records, the expiry cron, the Railway worker and its Dockerfile, and the required Turnstile check.
+- **Website snaps run inside Vercel.** `POST /api/capture` launches `@sparticuz/chromium` 141 with `playwright-core` 1.56.1 in the function itself. It runs behind the same per-capture SSRF proxy and checks as before (`packages/capture`, same test suite), and answers with the image bytes. The page title and the 16,000 px truncation flag come back in response headers. Locally and in CI, Playwright's installed Chromium is used instead.
+- **Response cap.** Serverless responses are limited to about 4.5 MB. A PNG over 4.2 MB is re-encoded as JPEG (quality 92, 82, 70), then taken at 1x as a last resort. If it is still too big, the new `PAGE_TOO_LARGE` error says "This page is too long to capture. Turn off Full page or paste a screenshot."
+- **Progress without streaming.** There is a single request now, so the status pill steps from "Loading page" to "Waiting for fonts" (about 3.5 s) to "Framing" (about 6 s) on timers.
+- **Rate limits** (30/hour, 150/day, 2 at a time per hashed IP) use Redis when `REDIS_URL` is set, otherwise memory in each server instance (best effort, no setup needed). Turnstile only runs when both keys are set.
+- **Editor**: tabs are Capture, Frame, Background, Layout, Export (shortcuts 1–5). Export has PNG/JPG/WebP, 1x/2x/4x, Download and Copy. The landing page lost the Recordings section and copy now says "ready to download as an image".
+- **Privacy and Terms** updated: screenshots are sent straight back and not stored, and there are no share links.

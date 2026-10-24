@@ -27,12 +27,12 @@ function loadScript(): Promise<TurnstileApi> {
 }
 
 /**
- * A fresh single-use Turnstile token (product spec §5). Invisible: the widget only shows itself if
- * Cloudflare needs the visitor to interact. Loaded lazily on the first capture so the landing page stays light.
+ * Optional Cloudflare Turnstile. Only used when TURNSTILE_SITE_KEY is set; otherwise returns undefined and the
+ * server skips the check.
  */
-export async function getTurnstileToken(): Promise<string> {
+export async function getTurnstileToken(): Promise<string | undefined> {
   const sitekey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-  if (!sitekey || process.env.NEXT_PUBLIC_E2E === '1') return 'dev';
+  if (!sitekey || process.env.NEXT_PUBLIC_E2E === '1') return undefined;
   const api = await loadScript();
   return new Promise((resolve, reject) => {
     const host = document.createElement('div');
